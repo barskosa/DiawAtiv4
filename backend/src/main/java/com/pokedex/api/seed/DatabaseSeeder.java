@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,19 @@ public class DatabaseSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws IOException {
+        try {
+            seed();
+        } catch (DataAccessResourceFailureException exception) {
+            // A URI não é exibida porque pode conter usuário e senha.
+            throw new IllegalStateException("""
+                    Não foi possível conectar ao MongoDB. Confira:
+                      - MongoDB local: o container está no ar? (docker compose up -d)
+                      - MongoDB Atlas: a MONGODB_URI (backend/.env) está correta e o seu IP foi liberado em Network Access?""",
+                    exception);
+        }
+    }
+
+    private void seed() throws IOException {
         SeedMode mode = properties.seed().mode();
         if (mode == SeedMode.NEVER) {
             log.info("Importação do Script_Pokedex.sql desativada (pokedex.seed.mode=never)");
