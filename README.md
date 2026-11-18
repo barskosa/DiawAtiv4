@@ -473,7 +473,7 @@ A atividade é feita em dupla com **Pair Programming**, e os dois integrantes pa
 
 | Integrante | Contribuições |
 | --- | --- |
-| _Nome do integrante 1_ | _Preencher_ |
+| Álvaro Barbosa | _Preencher_ |
 | _Nome do integrante 2_ | _Preencher_ |
 
 - [x] Backend Spring Boot (Controller, Service, Repository, Model) com MongoDB.
@@ -485,7 +485,7 @@ A atividade é feita em dupla com **Pair Programming**, e os dois integrantes pa
 - [x] Desafios opcionais: consulta por tipo, busca por nome, treinadores no MongoDB e relação treinador ↔ Pokémon.
 - [x] Extra: Arena PvP com regras no backend, batalhas salvas no MongoDB e ranking por agregação.
 - [x] Execução com um comando via Docker (`docker compose up -d --build`).
-- [ ] Preencher os integrantes e suas contribuições.
+- [ ] Preencher o integrante 2 e as contribuições reais de cada um.
 - [ ] Configurar o MongoDB Atlas e testar a aplicação com ele.
-- [ ] Publicar o repositório no GitHub.
+- [x] Publicar o repositório no GitHub.
 - [ ] **Cada um dos dois integrantes** entregar no Canvas o link do repositório.
