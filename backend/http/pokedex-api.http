@@ -1,0 +1,97 @@
+# Requisições da Pokédex API para o REST Client (VS Code) ou HTTP Client (IntelliJ).
+# Suba o backend antes: cd backend && ./mvnw spring-boot:run
+
+@baseUrl = http://localhost:8080
+
+### Listar todos
+GET {{baseUrl}}/api/pokemons
+
+### Buscar por ID
+GET {{baseUrl}}/api/pokemons/25
+
+### Buscar por nome
+GET {{baseUrl}}/api/pokemons?name=char
+
+### Filtrar por tipos (precisa ter todos)
+GET {{baseUrl}}/api/pokemons?type=Fire&type=Flying
+
+### Pokémon sem tipo
+GET {{baseUrl}}/api/pokemons?type=Typeless
+
+### Cadastrar (id opcional: sem ele, usa o próximo número livre)
+POST {{baseUrl}}/api/pokemons
+Content-Type: application/json
+
+{
+  "name": "Voltix",
+  "hp": 70,
+  "attack": 80,
+  "defense": 50,
+  "specialAttack": 95,
+  "specialDefense": 60,
+  "speed": 110,
+  "types": [
+    "Electric",
+    "Steel"
+  ]
+}
+
+### Atualizar (troque 152 pelo id retornado no cadastro)
+PUT {{baseUrl}}/api/pokemons/152
+Content-Type: application/json
+
+{
+  "name": "Voltix Turbo",
+  "hp": 70,
+  "attack": 80,
+  "defense": 50,
+  "specialAttack": 95,
+  "specialDefense": 60,
+  "speed": 130,
+  "types": [
+    "Electric"
+  ]
+}
+
+### Remover
+DELETE {{baseUrl}}/api/pokemons/152
+
+### Tipos
+GET {{baseUrl}}/api/types
+
+### Treinadores
+GET {{baseUrl}}/api/trainers
+
+### Equipe do treinador
+GET {{baseUrl}}/api/trainers/6/pokemons
+
+### Treinadores de um Pokémon
+GET {{baseUrl}}/api/pokemons/149/trainers
+
+### Erro 400 - dados inválidos
+POST {{baseUrl}}/api/pokemons
+Content-Type: application/json
+
+{
+  "name": "",
+  "hp": 0,
+  "attack": 300
+}
+
+### Erro 409 - nome repetido
+POST {{baseUrl}}/api/pokemons
+Content-Type: application/json
+
+{
+  "name": "Pikachu",
+  "hp": 70,
+  "attack": 80,
+  "defense": 50,
+  "specialAttack": 95,
+  "specialDefense": 60,
+  "speed": 110,
+  "types": [
+    "Electric",
+    "Steel"
+  ]
+}
