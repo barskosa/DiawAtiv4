@@ -1,0 +1,18 @@
+# MongoDB local, alternativa ao MongoDB Atlas para desenvolvimento.
+# Uso: docker compose up -d   (parar: docker compose down; apagar os dados: docker compose down -v)
+services:
+  mongodb:
+    image: mongo:8.0
+    container_name: pokedex-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - pokedex-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pokedex-mongo-data:
