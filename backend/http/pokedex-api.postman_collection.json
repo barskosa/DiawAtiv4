@@ -626,11 +626,11 @@
       ]
     },
     {
-      "name": "Arena PvP",
-      "description": "Batalha entre dois jogadores no mesmo dispositivo. O servidor calcula dano, ordem e vencedor e salva tudo na coleção battles.",
+      "name": "Desafios contra treinadores",
+      "description": "O jogador desafia um treinador do script e recebe um time sorteado do mesmo tamanho da equipe dele. O servidor joga pelo treinador e salva tudo na coleção battles.",
       "item": [
         {
-          "name": "Criar batalha (Pikachu x Squirtle)",
+          "name": "Desafiar Brock",
           "request": {
             "method": "POST",
             "header": [
@@ -651,7 +651,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"player1\": {\n    \"name\": \"Ana\",\n    \"pokemonId\": 25\n  },\n  \"player2\": {\n    \"name\": \"Bruno\",\n    \"pokemonId\": 7\n  }\n}",
+              "raw": "{\n  \"trainerId\": 2,\n  \"playerName\": \"Ana\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -666,14 +666,46 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('battleId', pm.response.json().id);"
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('battleId', b.id);",
+                  "pm.test('time do mesmo tamanho da equipe', () => pm.expect(b.playerTeam.length).to.eql(b.trainerTeam.length));"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Jogar rodada",
+          "name": "Sortear outro time",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/battles/{{battleId}}/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "battles",
+                "{{battleId}}",
+                "team"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Jogar rodada (Investida)",
           "request": {
             "method": "POST",
             "header": [
@@ -696,7 +728,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"player1Action\": \"SPECIAL\",\n  \"player2Action\": \"DEFEND\"\n}",
+              "raw": "{\n  \"action\": \"ATTACK\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -711,6 +743,124 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trocar Pokémon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/battles/{{battleId}}/rounds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "battles",
+                "{{battleId}}",
+                "rounds"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"SWITCH\",\n  \"switchTo\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('troca aceita ou Pokémon indisponível', () => pm.expect(pm.response.code).to.be.oneOf([200, 400, 409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro 400 - troca sem posição",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/battles/{{battleId}}/rounds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "battles",
+                "{{battleId}}",
+                "rounds"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"SWITCH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400 ou 409', () => pm.expect(pm.response.code).to.be.oneOf([400, 409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro 409 - sortear depois da 1ª rodada",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/battles/{{battleId}}/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "battles",
+                "{{battleId}}",
+                "team"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));"
                 ]
               }
             }
@@ -746,59 +896,10 @@
           ]
         },
         {
-          "name": "Erro 400 - defender duas vezes",
+          "name": "Desistir",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/battles/{{battleId}}/rounds",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "battles",
-                "{{battleId}}",
-                "rounds"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"player1Action\": \"ATTACK\",\n  \"player2Action\": \"DEFEND\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 400', () => pm.response.to.have.status(400));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Desistir (jogador 2)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/battles/{{battleId}}/forfeit",
               "host": [
@@ -810,15 +911,6 @@
                 "{{battleId}}",
                 "forfeit"
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"player\": 2\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           },
           "event": [
@@ -827,8 +919,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Ana venceu', () => pm.expect(pm.response.json().winner).to.eql(1));"
+                  "pm.test('status 200 ou 409', () => pm.expect(pm.response.code).to.be.oneOf([200, 409]));"
                 ]
               }
             }
@@ -858,7 +949,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"player1Action\": \"ATTACK\",\n  \"player2Action\": \"ATTACK\"\n}",
+              "raw": "{\n  \"action\": \"ATTACK\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -873,6 +964,48 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro 404 - treinador inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/battles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "battles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trainerId\": 99\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404));"
                 ]
               }
             }
@@ -907,19 +1040,19 @@
           ]
         },
         {
-          "name": "Ranking",
+          "name": "Estatísticas por treinador",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/battles/ranking",
+              "raw": "{{baseUrl}}/api/battles/stats",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "battles",
-                "ranking"
+                "stats"
               ]
             }
           },
