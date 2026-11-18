@@ -69,4 +69,9 @@ export const api = {
   forfeitBattle: (id) => request(`/battles/${encodeURIComponent(id)}/forfeit`, { method: 'POST' }),
   listBattles: (limit = 6, signal) => request(`/battles?limit=${limit}`, { signal }),
   battleStats: (signal) => request('/battles/stats', { signal }),
+
+  // Minigames
+  saveMinigameScore: (game, playerName, score, rounds) => request('/minigames/scores', { method: 'POST', body: { game, playerName, score, rounds } }),
+  minigameLeaderboard: (game, limit = 8, signal) => request(`/minigames/scores?game=${game}&limit=${limit}`, { signal }),
+  minigameStats: (signal) => request('/minigames/stats', { signal }),
 }

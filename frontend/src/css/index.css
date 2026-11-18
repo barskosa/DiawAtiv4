@@ -3,6 +3,7 @@
 @import './PokemonDetails.css';
 @import './Trainers.css';
 @import './Battles.css';
+@import './Minigames.css';
 
 :root {
   font-family: 'Segoe UI', Arial, sans-serif;

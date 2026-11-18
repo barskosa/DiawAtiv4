@@ -5,6 +5,7 @@ const navigation = [
   { id: 'favorites', label: 'Favoritos', icon: 'star' },
   { id: 'trainers', label: 'Treinadores', icon: 'users' },
   { id: 'battles', label: 'Batalhas', icon: 'swords' },
+  { id: 'minigames', label: 'Minigames', icon: 'gamepad' },
 ]
 
 export default function Header({ activePage, onNavigate, favoriteCount, pokemonCount }) {

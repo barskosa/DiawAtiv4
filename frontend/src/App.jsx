@@ -13,6 +13,7 @@ import PokemonForm from './components/PokemonForm.jsx'
 import Toast from './components/Toast.jsx'
 import ConfirmDelete from './components/ConfirmDelete.jsx'
 import Battles from './components/Battles.jsx'
+import Minigames from './components/Minigames.jsx'
 
 const FAVORITES_KEY = 'pokedex-kanto-favorites'
 
@@ -125,11 +126,11 @@ export default function App() {
       <Header activePage={activePage} onNavigate={navigate} favoriteCount={favorites.length} pokemonCount={isReady ? pokemon.length : null} />
       <div className="workspace">
         <header className="topbar">
-          <div className="breadcrumb"><Icon name="globe" size={17} /><span>Pokémon</span><Icon name="chevron-right" size={13} /><strong>{activePage === 'trainers' ? 'Treinadores' : activePage === 'battles' ? 'Batalhas' : isFavoritesPage ? 'Favoritos' : 'Pokédex'}</strong></div>
+          <div className="breadcrumb"><Icon name="globe" size={17} /><span>Pokémon</span><Icon name="chevron-right" size={13} /><strong>{activePage === 'trainers' ? 'Treinadores' : activePage === 'battles' ? 'Batalhas' : activePage === 'minigames' ? 'Minigames' : isFavoritesPage ? 'Favoritos' : 'Pokédex'}</strong></div>
           <span className="generation-label"><span className="status-dot" /> 1ª geração <span className="topbar-divider" /> Kanto</span>
         </header>
         <main className="main-content" id="conteudo" tabIndex={-1}>
-          {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : <>
+          {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
             <section className="hero">
               <div className="hero-copy">
                 <h1>{isFavoritesPage ? 'Favoritos' : <>Kanto.<br />1ª <em>Geração.</em></>}</h1>

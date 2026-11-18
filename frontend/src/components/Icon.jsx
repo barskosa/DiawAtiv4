@@ -23,6 +23,11 @@ const paths = {
   flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
   trophy: <><path d="M8 4h8v5a4 4 0 0 1-8 0Z" /><path d="M8 6H5a3 3 0 0 0 3 4m8-4h3a3 3 0 0 1-3 4M12 13v4m-4 4h8m-6-4h4" /></>,
   refresh: <><path d="M20 11a8 8 0 0 0-14.9-3.9L4 9m0-5v5h5" /><path d="M4 13a8 8 0 0 0 14.9 3.9L20 15m0 5v-5h-5" /></>,
+  gamepad: <><rect x="2" y="7" width="20" height="11" rx="5" /><path d="M7 10.5v4M5 12.5h4M15.5 11.5h.01M18 13.5h.01" /></>,
+  tag: <><path d="M3 12V4h8l10 10-8 8Z" /><circle cx="7.5" cy="8.5" r="1.5" /></>,
+  hash: <path d="M5 9h15M4 15h15M10 3 8 21M16 3l-2 18" />,
+  chart: <path d="M4 20V10m6 10V4m6 16v-7m4 7H3" />,
+  check: <path d="m5 12 5 5L20 7" />,
 }
 
 export default function Icon({ name, size = 20, className = '', ...props }) {
