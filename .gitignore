@@ -1,0 +1,17 @@
+# Dependências e builds
+node_modules/
+dist/
+target/
+
+# Credenciais e configurações locais (nunca publicar)
+.env
+.env.*
+!.env.example
+application-local.properties
+
+# Editores e sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.log
