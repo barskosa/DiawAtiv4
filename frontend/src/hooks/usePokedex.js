@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../services/api.js'
-import { sortById, toPokemonView } from '../data/pokedex.js'
+import { sortById, toPokemonPayload, toPokemonView } from '../data/pokedex.js'
 
 const initialState = { status: 'loading', error: null, pokemon: [], types: [], trainers: [] }
 
@@ -40,5 +40,20 @@ export function usePokedex() {
 
   const reload = useCallback(() => setReloadKey((key) => key + 1), [])
 
-  return { ...state, reload }
+  async function createPokemon(entry) {
+    const created = toPokemonView(await api.createPokemon(toPokemonPayload(entry)), state.types)
+    setState((current) => ({ ...current, pokemon: sortById([...current.pokemon, created]) }))
+    return created
+  }
+
+  async function updatePokemon(id, entry) {
+    const updated = toPokemonView(await api.updatePokemon(id, toPokemonPayload({ ...entry, id })), state.types)
+    setState((current) => ({
+      ...current,
+      pokemon: current.pokemon.map((item) => (item.id === id ? updated : item)),
+    }))
+    return updated
+  }
+
+  return { ...state, reload, createPokemon, updatePokemon }
 }

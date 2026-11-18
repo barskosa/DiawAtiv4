@@ -14,6 +14,9 @@ const paths = {
   book: <><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1v15" /></>,
   leaf: <><path d="M20 3C9 2 3 8 5 15c1 4 8 6 12 1 3-4 3-10 3-13ZM4 21 15 10" /></>,
   filter: <><path d="M4 7h16M7 12h10m-7 5h4" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  edit: <><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></>,
+  trash: <><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13" /><path d="M10 11v6m4-6v6" /></>,
 }
 
 export default function Icon({ name, size = 20, className = '', ...props }) {

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { filterPokemon, STAT_FIELDS } from './data/pokedex.js'
+import { useCallback, useEffect, useState } from 'react'
+import { filterPokemon, formatId, STAT_FIELDS } from './data/pokedex.js'
 import { usePokedex } from './hooks/usePokedex.js'
 import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx'
@@ -9,6 +9,8 @@ import Trainers from './components/Trainers.jsx'
 import PokemonImage from './components/PokemonImage.jsx'
 import Icon from './components/Icon.jsx'
 import StatusPanel from './components/StatusPanel.jsx'
+import PokemonForm from './components/PokemonForm.jsx'
+import Toast from './components/Toast.jsx'
 
 const FAVORITES_KEY = 'pokedex-kanto-favorites'
 
@@ -25,13 +27,16 @@ function readFavorites() {
 }
 
 export default function App() {
-  const { status, error, pokemon, types, trainers, reload } = usePokedex()
+  const { status, error, pokemon, types, trainers, reload, createPokemon, updatePokemon } = usePokedex()
   const [activePage, setActivePage] = useState('pokedex')
   const [query, setQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState([])
   const [sort, setSort] = useState('id')
   const [selectedId, setSelectedId] = useState(null)
   const [savedFavorites, setFavorites] = useState(readFavorites)
+  const [form, setForm] = useState(null) // { pokemon: null } para cadastrar, { pokemon } para editar
+  const [toast, setToast] = useState('')
+  const dismissToast = useCallback(() => setToast(''), [])
   const isReady = status === 'ready'
   // Favoritos de Pokémon que não existem mais na API não são exibidos nem contados.
   const favorites = isReady ? savedFavorites.filter((id) => pokemon.some((item) => item.id === id)) : savedFavorites
@@ -74,6 +79,23 @@ export default function App() {
     setSelectedId(entry ? entry.id : null)
   }
 
+  function openCreateForm() {
+    setForm({ pokemon: null })
+  }
+
+  function openEditForm(entry) {
+    setSelectedId(null)
+    setForm({ pokemon: entry })
+  }
+
+  async function savePokemon(values) {
+    const editing = form.pokemon
+    const saved = editing ? await updatePokemon(editing.id, values) : await createPokemon(values)
+    setForm(null)
+    setSelectedId(saved.id)
+    setToast(editing ? `${saved.name} foi atualizado.` : `${saved.name} foi cadastrado como ${formatId(saved.id)}.`)
+  }
+
   function chooseRandomPokemon() {
     const collection = filteredPokemon.length ? filteredPokemon : pokemon
     if (collection.length) selectPokemon(collection[Math.floor(Math.random() * collection.length)])
@@ -106,6 +128,8 @@ export default function App() {
             <div className="results-toolbar">
               <div className="results-title"><h2>{isFavoritesPage ? 'Favoritos' : 'Pokémon'}</h2><span className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'encontrado' : 'encontrados'}</span></div>
               <div className="results-actions">
+                <button type="button" className="button button-primary new-pokemon-button" onClick={openCreateForm}><Icon name="plus" size={16} /><span>Novo Pokémon</span></button>
+                <span className="toolbar-divider" />
                 <button type="button" className="random-button" onClick={chooseRandomPokemon} title="Selecionar Pokémon aleatório"><Icon name="shuffle" size={16} /><span>Aleatório</span></button>
                 <span className="toolbar-divider" />
                 <label className="sort-label" htmlFor="pokemon-sort">Ordenar por:</label>
@@ -119,7 +143,9 @@ export default function App() {
           </>}
         </main>
       </div>
-      {selectedPokemon && <PokemonDetails pokemon={selectedPokemon} allPokemon={pokemon} trainers={trainers} onClose={() => selectPokemon(null)} onSelect={selectPokemon} favorites={favorites} onToggleFavorite={toggleFavorite} />}
+      {selectedPokemon && <PokemonDetails pokemon={selectedPokemon} allPokemon={pokemon} trainers={trainers} onClose={() => selectPokemon(null)} onSelect={selectPokemon} favorites={favorites} onToggleFavorite={toggleFavorite} onEdit={openEditForm} />}
+      {form && <PokemonForm pokemon={form.pokemon} types={types} allPokemon={pokemon} onSubmit={savePokemon} onClose={() => setForm(null)} />}
+      <Toast message={toast} onDismiss={dismissToast} />
     </div>
   )
 }

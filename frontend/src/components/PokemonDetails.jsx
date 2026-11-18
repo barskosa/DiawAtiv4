@@ -4,7 +4,7 @@ import Icon from './Icon';
 import PokemonImage from './PokemonImage';
 import TypeBadge from './TypeBadge';
 
-export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose, onSelect, favorites, onToggleFavorite }) {
+export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose, onSelect, favorites, onToggleFavorite, onEdit }) {
   const dialogRef = useRef(null);
   const titleId = useId();
   const isOpen = Boolean(pokemon);
@@ -115,15 +115,20 @@ export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose,
             ) : <p>Nenhum treinador associado.</p>}
           </section>
 
-          <button
-            type="button"
-            className={`button button-primary favorite-button${isFavorite ? ' is-favorite' : ''}`}
-            aria-pressed={isFavorite}
-            onClick={() => onToggleFavorite(pokemon.id)}
-          >
-            <Icon name="star" size={18} />
-            {isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-          </button>
+          <div className="detail-actions">
+            <button
+              type="button"
+              className={`button button-primary favorite-button${isFavorite ? ' is-favorite' : ''}`}
+              aria-pressed={isFavorite}
+              onClick={() => onToggleFavorite(pokemon.id)}
+            >
+              <Icon name="star" size={18} />
+              {isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            </button>
+            <button type="button" className="button button-secondary" onClick={() => onEdit(pokemon)}>
+              <Icon name="edit" size={16} />Editar
+            </button>
+          </div>
         </div>
       </div>
 
