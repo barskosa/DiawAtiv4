@@ -209,8 +209,10 @@ public class BattleEngine {
         boolean critical = random.nextInt(16) == 0;
         double variation = 0.85 + random.nextDouble() * 0.15;
         double multiplier = effectiveness * (critical ? 1.5 : 1.0) * variation * (defender.isDefending() ? 0.5 : 1.0);
-        int damage = Math.max(1, (int) Math.floor(baseDamage(attacker, defender, special) * multiplier));
-        defender.setCurrentHp(Math.max(0, defender.getCurrentHp() - damage));
+        int calculated = Math.max(1, (int) Math.floor(baseDamage(attacker, defender, special) * multiplier));
+        // O registro mostra o HP realmente perdido (um golpe não tira mais HP do que o alvo tem).
+        int damage = Math.min(calculated, defender.getCurrentHp());
+        defender.setCurrentHp(defender.getCurrentHp() - damage);
 
         if (critical) {
             message.append(" Acerto crítico!");

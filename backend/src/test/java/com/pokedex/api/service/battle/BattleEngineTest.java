@@ -134,7 +134,7 @@ class BattleEngineTest {
         engine.playRound(battle, BattleAction.ATTACK, null);
 
         assertThat(battle.getLog()).extracting(BattleEvent::message).containsExactly(
-                "Pikachu usou Investida! Geodude perdeu 15 HP.",
+                "Pikachu usou Investida! Geodude perdeu 10 HP.", // 15 de dano, mas só restavam 10
                 "Geodude desmaiou!",
                 "Brock enviou Onix!");
         assertThat(battle.getTrainerActive()).isEqualTo(1);
