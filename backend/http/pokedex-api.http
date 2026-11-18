@@ -127,3 +127,15 @@ GET {{baseUrl}}/api/battles
 
 ###
 GET {{baseUrl}}/api/battles/stats
+
+### Minigames: salvar placar (game: TYPE, NUMBER ou STAT)
+POST {{baseUrl}}/api/minigames/scores
+Content-Type: application/json
+
+{"game": "NUMBER", "playerName": "Ana", "score": 420, "rounds": 5}
+
+### Ranking de um minigame
+GET {{baseUrl}}/api/minigames/scores?game=NUMBER&limit=10
+
+### Estatísticas dos minigames
+GET {{baseUrl}}/api/minigames/stats
