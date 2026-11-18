@@ -11,6 +11,7 @@ import Icon from './components/Icon.jsx'
 import StatusPanel from './components/StatusPanel.jsx'
 import PokemonForm from './components/PokemonForm.jsx'
 import Toast from './components/Toast.jsx'
+import ConfirmDelete from './components/ConfirmDelete.jsx'
 
 const FAVORITES_KEY = 'pokedex-kanto-favorites'
 
@@ -27,7 +28,7 @@ function readFavorites() {
 }
 
 export default function App() {
-  const { status, error, pokemon, types, trainers, reload, createPokemon, updatePokemon } = usePokedex()
+  const { status, error, pokemon, types, trainers, reload, createPokemon, updatePokemon, deletePokemon } = usePokedex()
   const [activePage, setActivePage] = useState('pokedex')
   const [query, setQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState([])
@@ -36,6 +37,7 @@ export default function App() {
   const [savedFavorites, setFavorites] = useState(readFavorites)
   const [form, setForm] = useState(null) // { pokemon: null } para cadastrar, { pokemon } para editar
   const [toast, setToast] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const dismissToast = useCallback(() => setToast(''), [])
   const isReady = status === 'ready'
   // Favoritos de Pokémon que não existem mais na API não são exibidos nem contados.
@@ -96,6 +98,15 @@ export default function App() {
     setToast(editing ? `${saved.name} foi atualizado.` : `${saved.name} foi cadastrado como ${formatId(saved.id)}.`)
   }
 
+  async function confirmDelete() {
+    const target = deleteTarget
+    await deletePokemon(target.id)
+    setDeleteTarget(null)
+    setSelectedId(null)
+    setFavorites((current) => current.filter((id) => id !== target.id))
+    setToast(`${target.name} foi excluído.`)
+  }
+
   function chooseRandomPokemon() {
     const collection = filteredPokemon.length ? filteredPokemon : pokemon
     if (collection.length) selectPokemon(collection[Math.floor(Math.random() * collection.length)])
@@ -143,8 +154,9 @@ export default function App() {
           </>}
         </main>
       </div>
-      {selectedPokemon && <PokemonDetails pokemon={selectedPokemon} allPokemon={pokemon} trainers={trainers} onClose={() => selectPokemon(null)} onSelect={selectPokemon} favorites={favorites} onToggleFavorite={toggleFavorite} onEdit={openEditForm} />}
+      {selectedPokemon && <PokemonDetails pokemon={selectedPokemon} allPokemon={pokemon} trainers={trainers} onClose={() => selectPokemon(null)} onSelect={selectPokemon} favorites={favorites} onToggleFavorite={toggleFavorite} onEdit={openEditForm} onDelete={setDeleteTarget} />}
       {form && <PokemonForm pokemon={form.pokemon} types={types} allPokemon={pokemon} onSubmit={savePokemon} onClose={() => setForm(null)} />}
+      {deleteTarget && <ConfirmDelete pokemon={deleteTarget} trainers={trainers} onConfirm={confirmDelete} onCancel={() => setDeleteTarget(null)} />}
       <Toast message={toast} onDismiss={dismissToast} />
     </div>
   )

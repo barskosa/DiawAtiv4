@@ -55,5 +55,17 @@ export function usePokedex() {
     return updated
   }
 
-  return { ...state, reload, createPokemon, updatePokemon }
+  /** Exclui o Pokémon; a API também o retira das equipes, então os treinadores são recarregados. */
+  async function deletePokemon(id) {
+    await api.deletePokemon(id)
+    let trainers
+    try {
+      trainers = await api.listTrainers()
+    } catch {
+      trainers = state.trainers.map((trainer) => ({ ...trainer, pokemonIds: trainer.pokemonIds.filter((item) => item !== id) }))
+    }
+    setState((current) => ({ ...current, trainers, pokemon: current.pokemon.filter((item) => item.id !== id) }))
+  }
+
+  return { ...state, reload, createPokemon, updatePokemon, deletePokemon }
 }

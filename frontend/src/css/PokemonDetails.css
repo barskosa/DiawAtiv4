@@ -97,3 +97,15 @@
   .form-actions .button { flex: 1; }
   .toast-region { left: 16px; right: 16px; bottom: 16px; }
 }
+
+/* Confirmação de exclusão */
+.confirm-dialog { width: min(440px, calc(100% - 32px)); }
+.confirm-body { padding: 32px 30px 20px; text-align: center; }
+.confirm-icon { display: inline-flex; padding: 16px; margin-bottom: 16px; border-radius: 50%; background: var(--accent-light); color: var(--accent); }
+.confirm-body h2 { font-size: 21px; letter-spacing: -.5px; margin-bottom: 10px; }
+.confirm-body p { color: #77808e; font-size: 12px; line-height: 1.7; margin-bottom: 0; }
+.confirm-body .form-alert { margin: 14px 0 0; text-align: left; }
+.confirm-actions { position: static; margin: 0; padding: 16px 24px; }
+.confirm-actions .button { flex: 1; }
+.button-delete { background: #c0392b; }
+.button-delete:hover { background: #a93226; }
