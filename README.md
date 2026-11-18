@@ -1,13 +1,14 @@
 # Pokédex Full Stack: Atividade 04
 
-Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extra, há uma **Arena PvP**: batalhas por turnos entre dois jogadores, calculadas pela API e salvas no MongoDB.
+Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extras, há **batalhas contra os treinadores** do script (com um time sorteado do mesmo tamanho da equipe deles) e uma página de **minigames**, com regras e placares na API e no MongoDB.
 
 ```text
 Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► React + Vite
    (importado na        (pokemons,      (/api/pokemons,        (interface da
     inicialização)       types,          /api/types,            Atividade 03 +
                          trainers,       /api/trainers,         cadastro/edição/exclusão
-                         battles)        /api/battles)          + Arena PvP)
+                         battles,        /api/battles,          + batalhas e minigames)
+                         minigame_scores) /api/minigames)
 ```
 
 ## Prévia
@@ -18,9 +19,11 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 | --- | --- |
 | ![Detalhes do Charizard](docs/pokedex-detalhes.png) | ![Formulário de edição](docs/pokedex-formulario.png) |
 
-| Arena PvP: preparação | Arena PvP: batalha |
+| Batalhas: escolha do treinador | Batalhas: desafio em andamento |
 | --- | --- |
-| ![Escolha dos Pokémon na Arena](docs/arena-preparacao.png) | ![Batalha entre Pikachu e Gyarados](docs/arena-batalha.png) |
+| ![Escolha do treinador](docs/batalhas-treinadores.png) | ![Batalha contra a Misty](docs/batalhas-desafio.png) |
+
+![Minigame do maior atributo](docs/minigames.png)
 
 [Ver a interface no celular](docs/pokedex-mobile.png).
 
@@ -38,11 +41,12 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 8. [Modelagem: do SQL para documentos](#modelagem-do-sql-para-documentos)
 9. [API REST](#api-rest)
 10. [Funcionalidades da interface](#funcionalidades-da-interface)
-11. [Arena PvP (extra)](#arena-pvp-extra)
-12. [Testes](#testes)
-13. [Variáveis de ambiente](#variáveis-de-ambiente)
-14. [Solução de problemas](#solução-de-problemas)
-15. [Entrega](#entrega)
+11. [Batalhas contra os treinadores (extra)](#batalhas-contra-os-treinadores-extra)
+12. [Minigames (extra)](#minigames-extra)
+13. [Testes](#testes)
+14. [Variáveis de ambiente](#variáveis-de-ambiente)
+15. [Solução de problemas](#solução-de-problemas)
+16. [Entrega](#entrega)
 
 ## Tecnologias
 
@@ -76,9 +80,9 @@ controller/  →  service/  →  repository/  →  model/
 │   └── src/main/java/com/pokedex/api/
 │       ├── controller/         # PokemonController, PokemonTypeController, TrainerController
 │       ├── service/            # PokemonService, PokemonTypeService, TrainerService
-│       │   └── battle/         # Arena PvP: BattleService, BattleEngine (regras), TypeChart
+│       │   └── battle/         # Batalhas: BattleService, BattleEngine (regras), TrainerAi, TypeChart
 │       ├── repository/         # Repositórios Spring Data + consultas com MongoTemplate
-│       ├── model/              # Pokemon, PokemonType, Trainer, Battle (@Document)
+│       ├── model/              # Pokemon, PokemonType, Trainer, Battle, MinigameScore (@Document)
 │       ├── dto/                # PokemonRequest (corpo validado do POST/PUT)
 │       ├── exception/          # Erros em Problem Details (RFC 9457), em português
 │       ├── seed/               # Leitura do Script_Pokedex.sql e importação
@@ -87,7 +91,8 @@ controller/  →  service/  →  repository/  →  model/
     ├── src/services/api.js     # Cliente HTTP da API
     ├── src/hooks/usePokedex.js # Carregamento e operações de cadastro/edição/exclusão
     ├── src/components/         # Componentes da Atividade 03 + PokemonForm, ConfirmDelete…
-    │   └── arena/              # Arena PvP: preparação, batalha, ranking e histórico
+    │   ├── battle/             # Batalhas: escolha do treinador, batalha, desempenho e histórico
+    │   └── minigames/          # Minigames: tipo, número da Pokédex, maior atributo e lógica de pontos
     ├── src/data/pokedex.js     # Conversão documento ↔ interface, pesquisa, filtros, validação
     ├── tests/                  # Testes do frontend (npm test)
     ├── Dockerfile, nginx.conf  # Imagem do site (Nginx também encaminha /api)
@@ -224,7 +229,8 @@ O script tem cinco tabelas relacionais. Elas foram adaptadas ao modelo de docume
 | `Pokemon` + `Rel_Pokemon_Type` + `Types` | `pokemons` | Atributos e **nomes dos tipos embutidos** no documento: os tipos são poucos, quase não mudam e sempre aparecem junto com o Pokémon, então uma única leitura traz tudo. |
 | `Types` | `types` | Catálogo usado para validar cadastros e montar os filtros. |
 | `Trainers` + `Rel_Trainer_Pokemon` | `trainers` | Equipe guardada **por referência** (`pokemonIds`): a relação é N:N e o Pokémon é editado ou excluído de forma independente. |
-| _(criada pela aplicação)_ | `battles` | Batalhas da Arena PvP. Cada documento guarda o estado e o registro das rodadas, com uma **cópia** dos Pokémon do início da batalha (veja [Arena PvP](#arena-pvp-extra)). |
+| _(criada pela aplicação)_ | `battles` | Desafios contra os treinadores. Cada documento guarda os dois times, o registro das rodadas e uma **cópia** dos Pokémon do início da batalha (veja [Batalhas](#batalhas-contra-os-treinadores-extra)). |
+| _(criada pela aplicação)_ | `minigame_scores` | Resultado de cada partida de minigame, usado no ranking e nas estatísticas (veja [Minigames](#minigames-extra)). |
 
 Documentos gerados (o `_id` é o número da Pokédex):
 
@@ -346,9 +352,11 @@ Novas nesta atividade:
 
 Pokémon cadastrados com número acima de 151 não têm ilustração local e aparecem com o ícone de Pokébola.
 
-## Arena PvP (extra)
+## Batalhas contra os treinadores (extra)
 
-Modo **Jogador vs Jogador** no mesmo dispositivo, no menu **Arena PvP**. Cada jogador escolhe um Pokémon da Pokédex; a cada rodada, o Jogador 1 escolhe a ação, depois o Jogador 2, sem ver a escolha do outro. **Toda a regra roda no backend** (`BattleEngine`): o frontend só envia as escolhas e mostra o resultado. Assim não dá para trapacear pelo navegador, e as batalhas ficam salvas no MongoDB.
+No menu **Batalhas**, o jogador escolhe um dos 12 treinadores do `Script_Pokedex.sql` e recebe um **time sorteado com o mesmo número de Pokémon da equipe dele**: 2 contra o Brock, 4 contra o Koga, 6 contra o Ash. Antes da primeira rodada dá para sortear outro time. A página **Treinadores** também tem um botão **Desafiar** em cada cartão.
+
+**Toda a regra roda no backend** (`BattleEngine` e `TrainerAi`): a API sorteia o time, escolhe as ações do treinador, calcula o dano e decide o vencedor. O frontend só envia a ação do jogador, então não dá para trapacear pelo navegador. Cada desafio fica salvo no MongoDB.
 
 ### Regras
 
@@ -356,47 +364,74 @@ Modo **Jogador vs Jogador** no mesmo dispositivo, no menu **Arena PvP**. Cada jo
 | --- | --- |
 | **Investida** | Golpe físico de poder 55, sem tipo: Ataque do atacante contra Defesa do alvo. |
 | **Golpe especial** | Poder 70, do **tipo principal** do Pokémon (ex.: *Golpe Elétrico*): Ataque especial contra Defesa especial, multiplicado pela tabela de tipos (0x, 0,25x, 0,5x, 1x, 2x ou 4x). O Mew, sem tipo, usa *Rajada Mística*, neutra. |
-| **Defender** | Age antes de todos e reduz à metade o dano recebido na rodada. Não pode ser usada duas rodadas seguidas. |
+| **Defender** | Age antes dos golpes e reduz à metade o dano recebido na rodada. Não pode ser usada duas rodadas seguidas. |
+| **Trocar Pokémon** | Coloca outro Pokémon vivo do time em campo. Acontece antes de tudo e gasta a rodada. |
 
 - HP de batalha (nível 50): `HP base + 60` (Pikachu: 95; Chansey: 310).
 - Dano: `⌊⌊22 × poder × Ataque ÷ Defesa⌋ ÷ 50⌋ + 2`, multiplicado pela efetividade, pelo crítico (chance de 1/16, ×1,5) e por uma variação aleatória de 0,85 a 1,00.
-- O Pokémon mais rápido golpeia primeiro (empate: sorteio). Vence quem zerar o HP do adversário, ou quando o outro jogador desiste.
-- A batalha guarda uma **cópia** do Pokémon do início: editar ou excluir o Pokémon depois não altera o histórico.
+- O Pokémon mais rápido golpeia primeiro (empate: sorteio). Quem desmaia não age, e o próximo Pokémon vivo do time entra automaticamente.
+- O **treinador** usa a equipe na ordem do script, escolhe sempre o golpe de maior dano esperado (considerando a tabela de tipos) e, com menos de 25% de HP, às vezes se defende.
+- Vence quem derrotar o time inteiro do adversário. Vencer um treinador conquista a insígnia dele. O jogador também pode desistir.
+- A batalha guarda uma **cópia** dos Pokémon do início: editar ou excluir um Pokémon depois não altera o histórico.
 
 ### Endpoints
 
 | Método | Endpoint | Descrição | Respostas |
 | --- | --- | --- | --- |
-| `POST` | `/api/battles` | Cria a batalha: `{"player1":{"name":"Ana","pokemonId":25},"player2":{"pokemonId":7}}` | 201, 400, 404 |
-| `GET` | `/api/battles/{id}` | Estado da batalha, com o registro de cada rodada | 200, 404 |
-| `POST` | `/api/battles/{id}/rounds` | Joga uma rodada: `{"player1Action":"SPECIAL","player2Action":"DEFEND"}` (`ATTACK`, `SPECIAL` ou `DEFEND`) | 200, 400, 404, 409 |
-| `POST` | `/api/battles/{id}/forfeit` | Desistência: `{"player":1}` | 200, 400, 409 |
+| `POST` | `/api/battles` | Desafia um treinador: `{"trainerId":2,"playerName":"Ana"}` | 201, 400, 404 |
+| `POST` | `/api/battles/{id}/team` | Sorteia outro time (só antes da 1ª rodada) | 200, 404, 409 |
+| `POST` | `/api/battles/{id}/rounds` | Joga uma rodada: `{"action":"SPECIAL"}` ou `{"action":"SWITCH","switchTo":2}` | 200, 400, 404, 409 |
+| `POST` | `/api/battles/{id}/forfeit` | Desiste do desafio | 200, 404, 409 |
+| `GET` | `/api/battles/{id}` | Estado da batalha, com os dois times e o registro de cada rodada | 200, 404 |
 | `GET` | `/api/battles?limit=10` | Histórico, das mais recentes para as mais antigas | 200 |
-| `GET` | `/api/battles/ranking` | Vitórias por Pokémon nas batalhas encerradas | 200 |
+| `GET` | `/api/battles/stats` | Vitórias e derrotas do jogador contra cada treinador | 200 |
 
-O **ranking** é calculado pelo próprio MongoDB com um *aggregation pipeline* (`$match` → `$project` → `$unwind` → `$group` → `$sort` → `$limit`). Cada batalha encerrada vira dois participantes, que são agrupados por Pokémon somando vitórias e batalhas.
+As **estatísticas** são calculadas pelo próprio MongoDB com um *aggregation pipeline* (`$match` → `$group` → `$sort`): as batalhas encerradas são agrupadas por treinador, somando desafios e vitórias.
 
 Documento salvo na coleção `battles` (resumido):
 
 ```json
 {
   "_id": "6740c1...",
-  "status": "FINISHED", "round": 4, "winner": 1, "finishReason": "KNOCKOUT",
-  "player1": { "playerName": "Ana", "pokemonId": 25, "pokemonName": "Pikachu", "types": ["Electric"],
-               "maxHp": 95, "currentHp": 12, "lastAction": "SPECIAL" },
-  "player2": { "playerName": "Bruno", "pokemonId": 130, "pokemonName": "Gyarados", "maxHp": 155, "currentHp": 0 },
-  "log": [ { "round": 1, "player": 1, "action": "SPECIAL", "moveName": "Golpe Elétrico", "damage": 60,
-             "effectiveness": 4.0, "critical": false, "targetHp": 95,
-             "message": "Pikachu usou Golpe Elétrico! É super efetivo! Gyarados perdeu 60 HP." } ],
-  "createdAt": "2026-11-18T13:00:00Z", "finishedAt": "2026-11-18T13:02:10Z"
+  "status": "FINISHED", "round": 7, "winner": "PLAYER", "finishReason": "KNOCKOUT",
+  "playerName": "Ana",
+  "trainer": { "_id": 2, "name": "Brock", "badges": 1 },
+  "playerActive": 1, "trainerActive": 1,
+  "playerTeam": [ { "pokemonId": 9, "pokemonName": "Blastoise", "types": ["Water"], "maxHp": 139, "currentHp": 0 },
+                  { "pokemonId": 54, "pokemonName": "Psyduck", "maxHp": 110, "currentHp": 31 } ],
+  "trainerTeam": [ { "pokemonId": 74, "pokemonName": "Geodude", "maxHp": 100, "currentHp": 0 },
+                   { "pokemonId": 95, "pokemonName": "Onix", "maxHp": 95, "currentHp": 0 } ],
+  "log": [ { "round": 1, "side": "PLAYER", "action": "SPECIAL", "moveName": "Golpe Água", "damage": 100,
+             "effectiveness": 4.0, "message": "Blastoise usou Golpe Água! É super efetivo! Geodude perdeu 100 HP." },
+           { "round": 1, "side": "TRAINER", "message": "Geodude desmaiou!" },
+           { "round": 1, "side": "TRAINER", "message": "Brock enviou Onix!" } ],
+  "createdAt": "2026-11-18T13:00:00Z", "finishedAt": "2026-11-18T13:03:10Z"
 }
 ```
 
-Na interface: escolha dos Pokémon com prévia do HP e do golpe especial, barras de HP, registro narrado (super efetivo e crítico em destaque), **Revanche**, **Desistir**, ranking e últimas batalhas, com **Continuar** para retomar uma batalha em andamento.
+## Minigames (extra)
+
+No menu **Minigames** há três jogos. Todos seguem a mesma lógica: **a cada rodada um Pokémon é sorteado da Pokédex** (sem repetir na partida) e o jogador aplica o minigame escolhido. Cada partida tem 5 rodadas de até 100 pontos.
+
+| Jogo | Como funciona | Pontuação |
+| --- | --- | --- |
+| **Qual é o tipo?** | Mostra o Pokémon sem os tipos; o jogador escolhe até 2 tipos (ou *Sem tipo*). | Acerto exato: 100. Senão, 50 por tipo certo menos 25 por tipo errado (mínimo 0). |
+| **Qual é o número?** | Mostra o Pokémon sem o número; o jogador dá o palpite do número da Pokédex. | `100 − 2 × distância` (mínimo 0), com dica de proximidade (*Na mosca!*, *Muito perto!*…). |
+| **Qual é o maior atributo?** | O jogador escolhe qual dos seis atributos base é o maior; depois todos são revelados. | 100 se acertar (empates valem, como no Mew). |
+
+No fim da partida, o placar é enviado à API e salvo na coleção `minigame_scores`, e a tela mostra a posição no ranking. O painel lateral mostra o ranking de cada jogo e as estatísticas (partidas, recorde e média), calculadas no MongoDB com `$group`, `$max` e `$avg`.
+
+| Método | Endpoint | Descrição | Respostas |
+| --- | --- | --- | --- |
+| `POST` | `/api/minigames/scores` | Salva uma partida: `{"game":"NUMBER","playerName":"Ana","score":420,"rounds":5}` | 201, 400 |
+| `GET` | `/api/minigames/scores?game=TYPE&limit=10` | Ranking de um jogo (`TYPE`, `NUMBER` ou `STAT`) | 200, 400 |
+| `GET` | `/api/minigames/stats` | Partidas, recorde, média e aproveitamento de cada jogo | 200 |
+
+A API valida o jogo, as rodadas (1 a 20) e a pontuação (0 a 100 por rodada).
 
 ## Testes
 
-### Backend: 46 testes
+### Backend: 53 testes
 
 ```bash
 cd backend
@@ -406,19 +441,20 @@ cd backend
 - `SqlScriptParserTest` e `PokedexSqlImporterTest`: leitura do `Script_Pokedex.sql` real (151 Pokémon, 18 tipos, 12 treinadores, 214 relações de tipo, 43 de equipe; Pikachu igual ao exemplo do enunciado).
 - `PokemonControllerTest`: contrato HTTP dos cinco endpoints (status, JSON, validação, Problem Details).
 - `PokedexApiIntegrationTest`: aplicação completa com um **MongoDB real** em container (Testcontainers), percorrendo o CRUD, as buscas e a atualização das equipes.
-- `BattleEngineTest`: regras da Arena com aleatoriedade controlada. Os danos esperados foram calculados à mão pela fórmula, e o teste cobre também tabela de tipos, ordem, defesa, imunidade, crítico, nocaute e desistência.
-- `BattleApiIntegrationTest`: Arena de ponta a ponta com MongoDB real: batalha até o nocaute, validações (400/404/409), cópia do Pokémon, histórico e ranking exatos.
+- `BattleEngineTest`: regras das batalhas e decisões do treinador com aleatoriedade controlada. Os danos esperados foram calculados à mão pela fórmula, e o teste cobre também tabela de tipos, ordem, defesa, troca, substituição ao desmaiar, vitória, derrota e desistência.
+- `BattleApiIntegrationTest`: desafios de ponta a ponta com MongoDB real: time do mesmo tamanho da equipe do treinador, novo sorteio, troca, batalha até o fim, treinador sem Pokémon, validações, cópia do Pokémon, histórico e estatísticas.
+- `MinigameApiIntegrationTest`: placar dos minigames: gravação, posição no ranking, ordenação, estatísticas e validações.
 
 Os testes de integração exigem Docker e são **ignorados automaticamente** quando o Docker não está disponível.
 
-### Frontend: 23 testes
+### Frontend: 29 testes
 
 ```bash
 cd frontend
 npm test
 ```
 
-Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado) e as regras da Arena exibidas na tela.
+Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado), as regras de batalha exibidas na tela e a pontuação dos três minigames.
 
 ### Verificação manual sugerida
 
@@ -429,7 +465,8 @@ Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordena�
 5. **Editar** altera nome, atributos e tipos, e a alteração persiste após recarregar.
 6. **Excluir** remove o Pokémon da lista e das equipes de treinadores (ex.: excluir Onix deixa Brock só com Geodude).
 7. Com o backend desligado, a interface mostra o aviso de erro; ao religar, **Tentar novamente** recarrega os dados.
-8. Na **Arena PvP**, uma batalha Pikachu x Gyarados mostra *É super efetivo!* no Golpe Elétrico; ao terminar, o vencedor aparece no ranking e no histórico.
+8. Em **Batalhas**, desafiar o Brock sorteia um time de 2 Pokémon; ao final da batalha, o resultado aparece no desempenho e no histórico.
+9. Em **Minigames**, uma partida de *Qual é o número?* dá 100 pontos no número exato e menos pontos quanto mais longe; o placar entra no ranking.
 
 ## Variáveis de ambiente
 
@@ -483,7 +520,8 @@ A atividade é feita em dupla com **Pair Programming**, e os dois integrantes pa
 - [x] Cadastro, edição e exclusão pela interface, persistindo no MongoDB.
 - [x] Credenciais fora do GitHub (`.env` ignorado; `.env.example` como modelo).
 - [x] Desafios opcionais: consulta por tipo, busca por nome, treinadores no MongoDB e relação treinador ↔ Pokémon.
-- [x] Extra: Arena PvP com regras no backend, batalhas salvas no MongoDB e ranking por agregação.
+- [x] Extra: batalhas contra os treinadores (time sorteado do mesmo tamanho), com regras no backend e estatísticas por agregação.
+- [x] Extra: minigames (tipo, número da Pokédex e maior atributo) com ranking salvo no MongoDB.
 - [x] Execução com um comando via Docker (`docker compose up -d --build`).
 - [ ] Preencher o integrante 2 e as contribuições reais de cada um.
 - [ ] Configurar o MongoDB Atlas e testar a aplicação com ele.
