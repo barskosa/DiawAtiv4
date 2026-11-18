@@ -30,6 +30,9 @@ public class ApiIndexController {
         endpoints.put("POST /api/battles/{id}/team", "Sorteia outro time antes da primeira rodada");
         endpoints.put("POST /api/battles/{id}/rounds", "Joga uma rodada (ATTACK, SPECIAL, DEFEND ou SWITCH)");
         endpoints.put("POST /api/battles/{id}/forfeit", "Desiste do desafio");
+        endpoints.put("POST /api/minigames/scores", "Salva o resultado de uma partida de minigame");
+        endpoints.put("GET /api/minigames/scores?game=TYPE", "Ranking de um minigame (TYPE, NUMBER ou STAT)");
+        endpoints.put("GET /api/minigames/stats", "Partidas, recorde e média de cada minigame");
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("name", "Pokédex API");

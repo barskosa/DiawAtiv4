@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -70,6 +71,15 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(problem(HttpStatus.BAD_REQUEST, "JSON inválido",
                         "O corpo da requisição não é um JSON válido ou possui valores no formato errado.", null));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException exception,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        String parameter = exception.getParameterName();
+        return ResponseEntity.badRequest()
+                .body(problem(HttpStatus.BAD_REQUEST, "Dados inválidos",
+                        "O parâmetro " + parameter + " é obrigatório.", Map.of(parameter, "é obrigatório")));
     }
 
     @Override
