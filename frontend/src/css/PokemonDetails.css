@@ -57,8 +57,8 @@
 .detail-actions .button { flex: 1 1 auto; font-size: 11px; }
 .detail-actions .favorite-button { flex-basis: 100%; }
 .detail-actions .favorite-button.is-favorite { background: #f6f1df; color: #a1822c; }
-.button-danger { background: #fff; border-color: #f1d3ce; color: #c0392b; }
-.button-danger:hover { background: #fdf1ef; }
+.button.button-danger { background: #fff; border-color: #f1d3ce; color: #c0392b; }
+.button.button-danger:hover { background: #fdf1ef; }
 
 /* Formulário de cadastro e edição */
 .form-dialog { width: min(720px, calc(100% - 40px)); }
@@ -107,5 +107,5 @@
 .confirm-body .form-alert { margin: 14px 0 0; text-align: left; }
 .confirm-actions { position: static; margin: 0; padding: 16px 24px; }
 .confirm-actions .button { flex: 1; }
-.button-delete { background: #c0392b; }
-.button-delete:hover { background: #a93226; }
+.button.button-delete { background: #c0392b; }
+.button.button-delete:hover { background: #a93226; }
