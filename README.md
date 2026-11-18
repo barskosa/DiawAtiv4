@@ -1,12 +1,13 @@
 # Pokédex Full Stack: Atividade 04
 
-Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade.
+Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extra, há uma **Arena PvP**: batalhas por turnos entre dois jogadores, calculadas pela API e salvas no MongoDB.
 
 ```text
 Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► React + Vite
    (importado na        (pokemons,      (/api/pokemons,        (interface da
     inicialização)       types,          /api/types,            Atividade 03 +
-                         trainers)       /api/trainers)         cadastro/edição/exclusão)
+                         trainers,       /api/trainers,         cadastro/edição/exclusão
+                         battles)        /api/battles)          + Arena PvP)
 ```
 
 ## Prévia
@@ -17,7 +18,13 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 | --- | --- |
 | ![Detalhes do Charizard](docs/pokedex-detalhes.png) | ![Formulário de edição](docs/pokedex-formulario.png) |
 
+| Arena PvP: preparação | Arena PvP: batalha |
+| --- | --- |
+| ![Escolha dos Pokémon na Arena](docs/arena-preparacao.png) | ![Batalha entre Pikachu e Gyarados](docs/arena-batalha.png) |
+
 [Ver a interface no celular](docs/pokedex-mobile.png).
+
+> **Para abrir rápido:** `docker compose up -d --build` e acesse **http://localhost:3000** (detalhes em [Executar tudo com Docker](#executar-tudo-com-docker-forma-mais-rápida)).
 
 ## Sumário
 
@@ -31,10 +38,11 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 8. [Modelagem: do SQL para documentos](#modelagem-do-sql-para-documentos)
 9. [API REST](#api-rest)
 10. [Funcionalidades da interface](#funcionalidades-da-interface)
-11. [Testes](#testes)
-12. [Variáveis de ambiente](#variáveis-de-ambiente)
-13. [Solução de problemas](#solução-de-problemas)
-14. [Entrega](#entrega)
+11. [Arena PvP (extra)](#arena-pvp-extra)
+12. [Testes](#testes)
+13. [Variáveis de ambiente](#variáveis-de-ambiente)
+14. [Solução de problemas](#solução-de-problemas)
+15. [Entrega](#entrega)
 
 ## Tecnologias
 
@@ -68,8 +76,9 @@ controller/  →  service/  →  repository/  →  model/
 │   └── src/main/java/com/pokedex/api/
 │       ├── controller/         # PokemonController, PokemonTypeController, TrainerController
 │       ├── service/            # PokemonService, PokemonTypeService, TrainerService
+│       │   └── battle/         # Arena PvP: BattleService, BattleEngine (regras), TypeChart
 │       ├── repository/         # Repositórios Spring Data + consultas com MongoTemplate
-│       ├── model/              # Pokemon, PokemonType, Trainer (@Document)
+│       ├── model/              # Pokemon, PokemonType, Trainer, Battle (@Document)
 │       ├── dto/                # PokemonRequest (corpo validado do POST/PUT)
 │       ├── exception/          # Erros em Problem Details (RFC 9457), em português
 │       ├── seed/               # Leitura do Script_Pokedex.sql e importação
@@ -78,6 +87,7 @@ controller/  →  service/  →  repository/  →  model/
     ├── src/services/api.js     # Cliente HTTP da API
     ├── src/hooks/usePokedex.js # Carregamento e operações de cadastro/edição/exclusão
     ├── src/components/         # Componentes da Atividade 03 + PokemonForm, ConfirmDelete…
+    │   └── arena/              # Arena PvP: preparação, batalha, ranking e histórico
     ├── src/data/pokedex.js     # Conversão documento ↔ interface, pesquisa, filtros, validação
     ├── tests/                  # Testes do frontend (npm test)
     ├── Dockerfile, nginx.conf  # Imagem do site (Nginx também encaminha /api)
@@ -214,6 +224,7 @@ O script tem cinco tabelas relacionais. Elas foram adaptadas ao modelo de docume
 | `Pokemon` + `Rel_Pokemon_Type` + `Types` | `pokemons` | Atributos e **nomes dos tipos embutidos** no documento: os tipos são poucos, quase não mudam e sempre aparecem junto com o Pokémon, então uma única leitura traz tudo. |
 | `Types` | `types` | Catálogo usado para validar cadastros e montar os filtros. |
 | `Trainers` + `Rel_Trainer_Pokemon` | `trainers` | Equipe guardada **por referência** (`pokemonIds`): a relação é N:N e o Pokémon é editado ou excluído de forma independente. |
+| _(criada pela aplicação)_ | `battles` | Batalhas da Arena PvP. Cada documento guarda o estado e o registro das rodadas, com uma **cópia** dos Pokémon do início da batalha (veja [Arena PvP](#arena-pvp-extra)). |
 
 Documentos gerados (o `_id` é o número da Pokédex):
 
@@ -335,9 +346,57 @@ Novas nesta atividade:
 
 Pokémon cadastrados com número acima de 151 não têm ilustração local e aparecem com o ícone de Pokébola.
 
+## Arena PvP (extra)
+
+Modo **Jogador vs Jogador** no mesmo dispositivo, no menu **Arena PvP**. Cada jogador escolhe um Pokémon da Pokédex; a cada rodada, o Jogador 1 escolhe a ação, depois o Jogador 2, sem ver a escolha do outro. **Toda a regra roda no backend** (`BattleEngine`): o frontend só envia as escolhas e mostra o resultado. Assim não dá para trapacear pelo navegador, e as batalhas ficam salvas no MongoDB.
+
+### Regras
+
+| Ação | Efeito |
+| --- | --- |
+| **Investida** | Golpe físico de poder 55, sem tipo: Ataque do atacante contra Defesa do alvo. |
+| **Golpe especial** | Poder 70, do **tipo principal** do Pokémon (ex.: *Golpe Elétrico*): Ataque especial contra Defesa especial, multiplicado pela tabela de tipos (0x, 0,25x, 0,5x, 1x, 2x ou 4x). O Mew, sem tipo, usa *Rajada Mística*, neutra. |
+| **Defender** | Age antes de todos e reduz à metade o dano recebido na rodada. Não pode ser usada duas rodadas seguidas. |
+
+- HP de batalha (nível 50): `HP base + 60` (Pikachu: 95; Chansey: 310).
+- Dano: `⌊⌊22 × poder × Ataque ÷ Defesa⌋ ÷ 50⌋ + 2`, multiplicado pela efetividade, pelo crítico (chance de 1/16, ×1,5) e por uma variação aleatória de 0,85 a 1,00.
+- O Pokémon mais rápido golpeia primeiro (empate: sorteio). Vence quem zerar o HP do adversário, ou quando o outro jogador desiste.
+- A batalha guarda uma **cópia** do Pokémon do início: editar ou excluir o Pokémon depois não altera o histórico.
+
+### Endpoints
+
+| Método | Endpoint | Descrição | Respostas |
+| --- | --- | --- | --- |
+| `POST` | `/api/battles` | Cria a batalha: `{"player1":{"name":"Ana","pokemonId":25},"player2":{"pokemonId":7}}` | 201, 400, 404 |
+| `GET` | `/api/battles/{id}` | Estado da batalha, com o registro de cada rodada | 200, 404 |
+| `POST` | `/api/battles/{id}/rounds` | Joga uma rodada: `{"player1Action":"SPECIAL","player2Action":"DEFEND"}` (`ATTACK`, `SPECIAL` ou `DEFEND`) | 200, 400, 404, 409 |
+| `POST` | `/api/battles/{id}/forfeit` | Desistência: `{"player":1}` | 200, 400, 409 |
+| `GET` | `/api/battles?limit=10` | Histórico, das mais recentes para as mais antigas | 200 |
+| `GET` | `/api/battles/ranking` | Vitórias por Pokémon nas batalhas encerradas | 200 |
+
+O **ranking** é calculado pelo próprio MongoDB com um *aggregation pipeline* (`$match` → `$project` → `$unwind` → `$group` → `$sort` → `$limit`). Cada batalha encerrada vira dois participantes, que são agrupados por Pokémon somando vitórias e batalhas.
+
+Documento salvo na coleção `battles` (resumido):
+
+```json
+{
+  "_id": "6740c1...",
+  "status": "FINISHED", "round": 4, "winner": 1, "finishReason": "KNOCKOUT",
+  "player1": { "playerName": "Ana", "pokemonId": 25, "pokemonName": "Pikachu", "types": ["Electric"],
+               "maxHp": 95, "currentHp": 12, "lastAction": "SPECIAL" },
+  "player2": { "playerName": "Bruno", "pokemonId": 130, "pokemonName": "Gyarados", "maxHp": 155, "currentHp": 0 },
+  "log": [ { "round": 1, "player": 1, "action": "SPECIAL", "moveName": "Golpe Elétrico", "damage": 60,
+             "effectiveness": 4.0, "critical": false, "targetHp": 95,
+             "message": "Pikachu usou Golpe Elétrico! É super efetivo! Gyarados perdeu 60 HP." } ],
+  "createdAt": "2026-11-18T13:00:00Z", "finishedAt": "2026-11-18T13:02:10Z"
+}
+```
+
+Na interface: escolha dos Pokémon com prévia do HP e do golpe especial, barras de HP, registro narrado (super efetivo e crítico em destaque), **Revanche**, **Desistir**, ranking e últimas batalhas, com **Continuar** para retomar uma batalha em andamento.
+
 ## Testes
 
-### Backend: 29 testes
+### Backend: 46 testes
 
 ```bash
 cd backend
@@ -346,16 +405,20 @@ cd backend
 
 - `SqlScriptParserTest` e `PokedexSqlImporterTest`: leitura do `Script_Pokedex.sql` real (151 Pokémon, 18 tipos, 12 treinadores, 214 relações de tipo, 43 de equipe; Pikachu igual ao exemplo do enunciado).
 - `PokemonControllerTest`: contrato HTTP dos cinco endpoints (status, JSON, validação, Problem Details).
-- `PokedexApiIntegrationTest`: aplicação completa com um **MongoDB real** em container (Testcontainers), percorrendo o CRUD, as buscas e a atualização das equipes. Esse teste exige Docker e é **ignorado automaticamente** quando o Docker não está disponível.
+- `PokedexApiIntegrationTest`: aplicação completa com um **MongoDB real** em container (Testcontainers), percorrendo o CRUD, as buscas e a atualização das equipes.
+- `BattleEngineTest`: regras da Arena com aleatoriedade controlada. Os danos esperados foram calculados à mão pela fórmula, e o teste cobre também tabela de tipos, ordem, defesa, imunidade, crítico, nocaute e desistência.
+- `BattleApiIntegrationTest`: Arena de ponta a ponta com MongoDB real: batalha até o nocaute, validações (400/404/409), cópia do Pokémon, histórico e ranking exatos.
 
-### Frontend: 19 testes
+Os testes de integração exigem Docker e são **ignorados automaticamente** quando o Docker não está disponível.
+
+### Frontend: 23 testes
 
 ```bash
 cd frontend
 npm test
 ```
 
-Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário e o cliente HTTP (com `fetch` simulado).
+Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado) e as regras da Arena exibidas na tela.
 
 ### Verificação manual sugerida
 
@@ -366,6 +429,7 @@ Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordena�
 5. **Editar** altera nome, atributos e tipos, e a alteração persiste após recarregar.
 6. **Excluir** remove o Pokémon da lista e das equipes de treinadores (ex.: excluir Onix deixa Brock só com Geodude).
 7. Com o backend desligado, a interface mostra o aviso de erro; ao religar, **Tentar novamente** recarrega os dados.
+8. Na **Arena PvP**, uma batalha Pikachu x Gyarados mostra *É super efetivo!* no Golpe Elétrico; ao terminar, o vencedor aparece no ranking e no histórico.
 
 ## Variáveis de ambiente
 
@@ -419,6 +483,8 @@ A atividade é feita em dupla com **Pair Programming**, e os dois integrantes pa
 - [x] Cadastro, edição e exclusão pela interface, persistindo no MongoDB.
 - [x] Credenciais fora do GitHub (`.env` ignorado; `.env.example` como modelo).
 - [x] Desafios opcionais: consulta por tipo, busca por nome, treinadores no MongoDB e relação treinador ↔ Pokémon.
+- [x] Extra: Arena PvP com regras no backend, batalhas salvas no MongoDB e ranking por agregação.
+- [x] Execução com um comando via Docker (`docker compose up -d --build`).
 - [ ] Preencher os integrantes e suas contribuições.
 - [ ] Configurar o MongoDB Atlas e testar a aplicação com ele.
 - [ ] Publicar o repositório no GitHub.
