@@ -1,5 +1,6 @@
 package com.pokedex.api.config;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Libera o acesso do frontend React (Vite) à API quando ele roda em outra origem.
  */
 @Configuration
+@EnableConfigurationProperties(PokedexProperties.class)
 public class CorsConfig implements WebMvcConfigurer {
 
     private final PokedexProperties properties;
