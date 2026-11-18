@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 import org.junit.jupiter.api.Test;
@@ -206,7 +207,7 @@ class BattleEngineTest {
 
     @Test
     void aFullBattleAlwaysEnds() {
-        BattleEngine realRandom = new BattleEngine(RandomGenerator.getDefault());
+        BattleEngine realRandom = new BattleEngine(new Random());
         Battle battle = battle(realRandom, MEW, SQUIRTLE);
         BattleAction[] cycle = {BattleAction.ATTACK, BattleAction.SPECIAL, BattleAction.DEFEND};
 

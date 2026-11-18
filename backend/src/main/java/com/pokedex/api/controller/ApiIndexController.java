@@ -23,6 +23,12 @@ public class ApiIndexController {
         endpoints.put("GET /api/trainers", "Lista os treinadores");
         endpoints.put("GET /api/trainers/{id}", "Busca um treinador");
         endpoints.put("GET /api/trainers/{id}/pokemons", "Equipe do treinador");
+        endpoints.put("POST /api/battles", "Cria uma batalha PvP entre dois Pokémon");
+        endpoints.put("GET /api/battles", "Histórico de batalhas (?limit=10)");
+        endpoints.put("GET /api/battles/{id}", "Estado de uma batalha");
+        endpoints.put("POST /api/battles/{id}/rounds", "Joga uma rodada (ATTACK, SPECIAL ou DEFEND)");
+        endpoints.put("POST /api/battles/{id}/forfeit", "Desistência de um jogador");
+        endpoints.put("GET /api/battles/ranking", "Vitórias por Pokémon (agregação no MongoDB)");
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("name", "Pokédex API");

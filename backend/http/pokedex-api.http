@@ -95,3 +95,29 @@ Content-Type: application/json
     "Steel"
   ]
 }
+
+### Arena PvP: criar batalha (copie o "id" da resposta para @battleId)
+POST {{baseUrl}}/api/battles
+Content-Type: application/json
+
+{"player1": {"name": "Ana", "pokemonId": 25}, "player2": {"name": "Bruno", "pokemonId": 7}}
+
+@battleId = cole-o-id-aqui
+
+### Jogar uma rodada (ATTACK, SPECIAL ou DEFEND)
+POST {{baseUrl}}/api/battles/{{battleId}}/rounds
+Content-Type: application/json
+
+{"player1Action": "SPECIAL", "player2Action": "ATTACK"}
+
+### Desistir
+POST {{baseUrl}}/api/battles/{{battleId}}/forfeit
+Content-Type: application/json
+
+{"player": 2}
+
+### Histórico e ranking
+GET {{baseUrl}}/api/battles
+
+###
+GET {{baseUrl}}/api/battles/ranking
