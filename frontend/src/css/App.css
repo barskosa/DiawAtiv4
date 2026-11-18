@@ -171,3 +171,14 @@
   .results-actions { flex-wrap: wrap; row-gap: 10px; }
   .button.new-pokemon-button { order: -1; width: 100%; }
 }
+
+/* Navegação no celular com quatro itens (Pokédex, Favoritos, Treinadores, Arena PvP) */
+@media (max-width: 640px) {
+  .navigation { gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .navigation::-webkit-scrollbar { display: none; }
+  .nav-item { flex-shrink: 0; white-space: nowrap; }
+}
+@media (max-width: 480px) {
+  .nav-item svg { display: none; }
+  .nav-item { padding: 0 4px 11px; }
+}

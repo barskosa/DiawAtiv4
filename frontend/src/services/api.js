@@ -60,4 +60,12 @@ export const api = {
   deletePokemon: (id) => request(`/pokemons/${id}`, { method: 'DELETE' }),
   listTypes: (signal) => request('/types', { signal }),
   listTrainers: (signal) => request('/trainers', { signal }),
+
+  // Arena PvP
+  createBattle: (player1, player2) => request('/battles', { method: 'POST', body: { player1, player2 } }),
+  getBattle: (id) => request(`/battles/${encodeURIComponent(id)}`),
+  playRound: (id, player1Action, player2Action) => request(`/battles/${encodeURIComponent(id)}/rounds`, { method: 'POST', body: { player1Action, player2Action } }),
+  forfeitBattle: (id, player) => request(`/battles/${encodeURIComponent(id)}/forfeit`, { method: 'POST', body: { player } }),
+  listBattles: (limit = 6, signal) => request(`/battles?limit=${limit}`, { signal }),
+  battleRanking: (limit = 5, signal) => request(`/battles/ranking?limit=${limit}`, { signal }),
 }

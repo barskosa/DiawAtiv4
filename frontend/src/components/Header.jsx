@@ -4,6 +4,7 @@ const navigation = [
   { id: 'pokedex', label: 'Pokédex', icon: 'grid' },
   { id: 'favorites', label: 'Favoritos', icon: 'star' },
   { id: 'trainers', label: 'Treinadores', icon: 'users' },
+  { id: 'arena', label: 'Arena PvP', icon: 'swords' },
 ]
 
 export default function Header({ activePage, onNavigate, favoriteCount, pokemonCount }) {

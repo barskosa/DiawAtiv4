@@ -17,6 +17,12 @@ const paths = {
   plus: <path d="M12 5v14M5 12h14" />,
   edit: <><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></>,
   trash: <><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13" /><path d="M10 11v6m4-6v6" /></>,
+  swords: <><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2" /><path d="M9.5 6.5 6 3H3v3l3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2" /></>,
+  shield: <path d="M12 3 5 6v6c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6Z" />,
+  zap: <path d="M13 2 4 14h7l-1 8 9-12h-7Z" />,
+  flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
+  trophy: <><path d="M8 4h8v5a4 4 0 0 1-8 0Z" /><path d="M8 6H5a3 3 0 0 0 3 4m8-4h3a3 3 0 0 1-3 4M12 13v4m-4 4h8m-6-4h4" /></>,
+  refresh: <><path d="M20 11a8 8 0 0 0-14.9-3.9L4 9m0-5v5h5" /><path d="M4 13a8 8 0 0 0 14.9 3.9L20 15m0 5v-5h-5" /></>,
 }
 
 export default function Icon({ name, size = 20, className = '', ...props }) {

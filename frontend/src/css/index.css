@@ -2,6 +2,7 @@
 @import './PokemonCard.css';
 @import './PokemonDetails.css';
 @import './Trainers.css';
+@import './Arena.css';
 
 :root {
   font-family: 'Segoe UI', Arial, sans-serif;
