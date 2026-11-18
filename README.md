@@ -172,13 +172,13 @@ npm install
 npm run dev
 ```
 
-Abra **http://127.0.0.1:5173**. O Vite encaminha as chamadas de `/api` para `http://127.0.0.1:8080`, então não é preciso configurar nada. No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd install` e `npm.cmd run dev`.
+Abra **http://localhost:5173** (ou http://127.0.0.1:5173). O Vite encaminha as chamadas de `/api` para `http://127.0.0.1:8080`, então não é preciso configurar nada. No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd install` e `npm.cmd run dev`.
 
 Versão de produção:
 
 ```bash
 npm run build
-npm run preview                 # http://127.0.0.1:4173, também com o proxy /api
+npm run preview                 # http://localhost:4173, também com o proxy /api
 ```
 
 Se o backend não estiver no ar, a interface mostra o aviso **"Não foi possível carregar a Pokédex"** com o botão **Tentar novamente**.

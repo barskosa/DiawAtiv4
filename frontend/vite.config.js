@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     base: './',
-    server: { proxy: apiProxy },
-    preview: { proxy: apiProxy },
+    // host: true escuta em IPv4 e IPv6, então tanto http://localhost:5173 quanto
+    // http://127.0.0.1:5173 funcionam (antes só 127.0.0.1 respondia).
+    server: { host: true, port: 5173, proxy: apiProxy },
+    preview: { host: true, port: 4173, proxy: apiProxy },
   }
 })
