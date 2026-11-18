@@ -25,15 +25,16 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 2. [Estrutura do repositório](#estrutura-do-repositório)
 3. [Pré-requisitos](#pré-requisitos)
 4. [Configuração do MongoDB](#configuração-do-mongodb)
-5. [Executar o backend](#executar-o-backend)
-6. [Executar o frontend](#executar-o-frontend)
-7. [Modelagem: do SQL para documentos](#modelagem-do-sql-para-documentos)
-8. [API REST](#api-rest)
-9. [Funcionalidades da interface](#funcionalidades-da-interface)
-10. [Testes](#testes)
-11. [Variáveis de ambiente](#variáveis-de-ambiente)
-12. [Solução de problemas](#solução-de-problemas)
-13. [Entrega](#entrega)
+5. [Executar tudo com Docker](#executar-tudo-com-docker-forma-mais-rápida)
+6. [Executar o backend](#executar-o-backend)
+7. [Executar o frontend](#executar-o-frontend)
+8. [Modelagem: do SQL para documentos](#modelagem-do-sql-para-documentos)
+9. [API REST](#api-rest)
+10. [Funcionalidades da interface](#funcionalidades-da-interface)
+11. [Testes](#testes)
+12. [Variáveis de ambiente](#variáveis-de-ambiente)
+13. [Solução de problemas](#solução-de-problemas)
+14. [Entrega](#entrega)
 
 ## Tecnologias
 
@@ -56,9 +57,11 @@ controller/  →  service/  →  repository/  →  model/
 ```text
 .
 ├── Script_Pokedex.sql          # Fonte dos dados (fornecido na atividade)
-├── docker-compose.yml          # MongoDB local opcional
+├── docker-compose.yml          # MongoDB + API + site com um comando
+├── .env.example                # Modelo para usar o Atlas com o docker compose
 ├── docs/                       # Capturas da interface
 ├── backend/                    # API REST Spring Boot
+│   ├── Dockerfile              # Imagem da API (build com Maven, execução com JRE 21)
 │   ├── pom.xml, mvnw, mvnw.cmd # Maven Wrapper: não precisa instalar o Maven
 │   ├── .env.example            # Modelo de configuração (copie para .env)
 │   ├── http/                   # Coleção do Postman/Insomnia e arquivo .http
@@ -77,6 +80,7 @@ controller/  →  service/  →  repository/  →  model/
     ├── src/components/         # Componentes da Atividade 03 + PokemonForm, ConfirmDelete…
     ├── src/data/pokedex.js     # Conversão documento ↔ interface, pesquisa, filtros, validação
     ├── tests/                  # Testes do frontend (npm test)
+    ├── Dockerfile, nginx.conf  # Imagem do site (Nginx também encaminha /api)
     └── vite.config.js          # Proxy /api → backend
 ```
 
@@ -143,6 +147,24 @@ Por padrão (`POKEDEX_SEED_MODE=if-empty`), cada coleção só é importada se e
 POKEDEX_SEED_MODE=always ./mvnw spring-boot:run                       # Linux/macOS
 $env:POKEDEX_SEED_MODE='always'; .\mvnw.cmd spring-boot:run           # Windows PowerShell
 ```
+
+## Executar tudo com Docker (forma mais rápida)
+
+Com o [Docker](https://docs.docker.com/get-docker/) instalado, um único comando sobe o MongoDB, a API e o site. **Não é preciso instalar Java, Maven nem Node.**
+
+```bash
+docker compose up -d --build
+```
+
+| Serviço | Endereço |
+| --- | --- |
+| Pokédex (React, servido pelo Nginx) | **http://localhost:3000** |
+| API REST (Spring Boot) | http://localhost:8080 |
+| MongoDB | `localhost:27017` |
+
+A primeira execução baixa as imagens e compila o projeto, e leva alguns minutos. Na inicialização, a API importa o `Script_Pokedex.sql` no MongoDB. Para acompanhar: `docker compose logs -f backend`. Para parar: `docker compose down` (os dados continuam salvos). Para apagar também os dados: `docker compose down -v`.
+
+Para usar o **MongoDB Atlas** em vez do banco do container, crie um `.env` na raiz a partir do `.env.example` com a sua `MONGODB_URI` e rode o mesmo comando.
 
 ## Executar o backend
 

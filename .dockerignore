@@ -1,0 +1,10 @@
+# Contexto do build do backend (raiz): só o necessário
+.git
+**/node_modules
+**/target
+**/dist
+frontend
+docs
+*.md
+.env
+.env.*
