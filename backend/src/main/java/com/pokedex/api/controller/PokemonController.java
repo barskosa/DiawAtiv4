@@ -17,7 +17,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.pokedex.api.dto.PokemonRequest;
 import com.pokedex.api.model.Pokemon;
+import com.pokedex.api.model.Trainer;
 import com.pokedex.api.service.PokemonService;
+import com.pokedex.api.service.TrainerService;
 
 import jakarta.validation.Valid;
 
@@ -26,9 +28,11 @@ import jakarta.validation.Valid;
 public class PokemonController {
 
     private final PokemonService pokemonService;
+    private final TrainerService trainerService;
 
-    public PokemonController(PokemonService pokemonService) {
+    public PokemonController(PokemonService pokemonService, TrainerService trainerService) {
         this.pokemonService = pokemonService;
+        this.trainerService = trainerService;
     }
 
     /**
@@ -44,6 +48,13 @@ public class PokemonController {
     @GetMapping("/{id}")
     public Pokemon findById(@PathVariable Integer id) {
         return pokemonService.findById(id);
+    }
+
+    /** Treinadores que possuem o Pokémon na equipe. */
+    @GetMapping("/{id}/trainers")
+    public List<Trainer> findTrainers(@PathVariable Integer id) {
+        pokemonService.findById(id);
+        return trainerService.findByPokemon(id);
     }
 
     @PostMapping
