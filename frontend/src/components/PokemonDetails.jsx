@@ -1,13 +1,10 @@
 import { useEffect, useId, useRef } from 'react';
-import { pokemon as allPokemon, trainers, STAT_FIELDS, formatId } from '../data/pokedex';
+import { STAT_FIELDS, formatId, sortById } from '../data/pokedex';
 import Icon from './Icon';
 import PokemonImage from './PokemonImage';
 import TypeBadge from './TypeBadge';
 
-const maxStat = Math.max(...allPokemon.flatMap((entry) => Object.values(entry.stats)));
-const catalog = [...allPokemon].sort((first, second) => first.id - second.id);
-
-export default function PokemonDetails({ pokemon, onClose, onSelect, favorites, onToggleFavorite }) {
+export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose, onSelect, favorites, onToggleFavorite }) {
   const dialogRef = useRef(null);
   const titleId = useId();
   const isOpen = Boolean(pokemon);
@@ -33,6 +30,9 @@ export default function PokemonDetails({ pokemon, onClose, onSelect, favorites, 
 
   if (!pokemon) return null;
 
+  // As barras usam o maior atributo da Pokédex atual, que pode mudar com cadastros e edições.
+  const maxStat = Math.max(1, ...allPokemon.flatMap((entry) => Object.values(entry.stats)));
+  const catalog = sortById(allPokemon);
   const index = catalog.findIndex((entry) => entry.id === pokemon.id);
   const previous = catalog[(index - 1 + catalog.length) % catalog.length];
   const next = catalog[(index + 1) % catalog.length];

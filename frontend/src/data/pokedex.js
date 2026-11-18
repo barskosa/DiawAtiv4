@@ -1,9 +1,6 @@
-import data from './pokedex-data.json';
-
-// O arquivo fornecido pela atividade é a única fonte de dados da aplicação.
-export const pokemon = data.pokemon;
-export const trainers = data.trainers;
-export const types = data.types;
+// Os dados vêm da API (Spring Boot + MongoDB, populado pelo Script_Pokedex.sql).
+// Este módulo concentra a conversão entre os documentos da API e o formato usado pelos
+// componentes da Atividade 03, além da pesquisa e da ordenação.
 
 export const STAT_FIELDS = [
   { key: 'hp', label: 'HP', shortLabel: 'HP' },
@@ -34,6 +31,39 @@ export const typeLabels = {
   Dragon: 'Dragão',
   Steel: 'Aço',
 };
+
+export const STAT_MIN = 1;
+export const STAT_MAX = 255;
+export const MAX_TYPES = 2;
+export const TYPELESS = 'Typeless';
+
+/**
+ * Documento da API → formato da interface.
+ * { id, name, hp, ..., types: ["Grass"] } → { id, name, stats: { hp, ... }, types: [{ id: 4, name: "Grass" }] }
+ */
+export function toPokemonView(document, typeCatalog = []) {
+  const typeIds = new Map(typeCatalog.map((type) => [type.name, type.id]));
+  return {
+    id: document.id,
+    name: document.name,
+    stats: Object.fromEntries(STAT_FIELDS.map(({ key }) => [key, Number(document[key]) || 0])),
+    types: (document.types || []).map((name) => ({ id: typeIds.get(name) ?? name, name })),
+  };
+}
+
+/** Formato da interface → corpo das requisições POST/PUT da API. */
+export function toPokemonPayload(entry) {
+  return {
+    ...(entry.id ? { id: Number(entry.id) } : {}),
+    name: entry.name.trim().replace(/\s+/g, ' '),
+    ...Object.fromEntries(STAT_FIELDS.map(({ key }) => [key, Number(entry.stats[key])])),
+    types: entry.types.map((type) => (typeof type === 'string' ? type : type.name)),
+  };
+}
+
+export function sortById(list) {
+  return [...list].sort((left, right) => left.id - right.id);
+}
 
 export function formatId(id) {
   return `#${String(id).padStart(3, '0')}`;

@@ -1,7 +1,7 @@
-import { types, typeLabels } from '../data/pokedex.js'
+import { typeLabels } from '../data/pokedex.js'
 import Icon from './Icon.jsx'
 
-export default function SearchBar({ query, onQueryChange, selectedTypes, onToggleType, onClearTypes, onReset, hasFilters }) {
+export default function SearchBar({ types, query, onQueryChange, selectedTypes, onToggleType, onClearTypes, onReset, hasFilters }) {
   return (
     <section className="search-panel" aria-label="Pesquisa e filtros de Pokémon">
       <div className="search-row">

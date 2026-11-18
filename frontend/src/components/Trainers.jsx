@@ -1,14 +1,13 @@
-import { pokemon, trainers } from '../data/pokedex';
 import Icon from './Icon';
 import PokemonImage from './PokemonImage';
-
-const pokemonById = new Map(pokemon.map((entry) => [entry.id, entry]));
 
 function getInitials(name) {
   return name.split(' ').slice(0, 2).map((part) => part[0]).join('');
 }
 
-export default function Trainers({ onSelectPokemon }) {
+export default function Trainers({ trainers, pokemon, onSelectPokemon }) {
+  const pokemonById = new Map(pokemon.map((entry) => [entry.id, entry]));
+
   return (
     <section aria-labelledby="trainers-title">
       <div className="section-heading">
