@@ -1,7 +1,7 @@
 // Cliente da API REST da Pokédex (Spring Boot + MongoDB).
 // Em desenvolvimento, o Vite encaminha /api para o backend (veja vite.config.js).
 // Para apontar para outro endereço, defina VITE_API_URL (ex.: http://localhost:8080/api).
-const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
+const API_URL = (import.meta.env?.VITE_API_URL || '/api').replace(/\/+$/, '')
 
 const CONNECTION_MESSAGE = 'Não foi possível conectar à API. Verifique se o backend está em execução.'
 
