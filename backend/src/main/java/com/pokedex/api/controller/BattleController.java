@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.pokedex.api.dto.BattleRequests;
-import com.pokedex.api.dto.BattleViews.RankingEntry;
 import com.pokedex.api.dto.BattleViews.Summary;
+import com.pokedex.api.dto.BattleViews.TrainerStats;
 import com.pokedex.api.model.Battle;
 import com.pokedex.api.service.battle.BattleService;
 
 import jakarta.validation.Valid;
 
-/** Arena PvP: batalhas entre dois jogadores, calculadas e salvas pelo servidor. */
+/** Desafios contra os treinadores: o servidor sorteia o time, joga pelo treinador e salva a batalha. */
 @RestController
 @RequestMapping("/api/battles")
 public class BattleController {
@@ -33,8 +33,8 @@ public class BattleController {
     }
 
     @PostMapping
-    public ResponseEntity<Battle> create(@Valid @RequestBody BattleRequests.CreateBattle request) {
-        Battle battle = battleService.create(request);
+    public ResponseEntity<Battle> challenge(@Valid @RequestBody BattleRequests.Challenge request) {
+        Battle battle = battleService.challenge(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(battle.getId()).toUri();
         return ResponseEntity.created(location).body(battle);
@@ -45,14 +45,19 @@ public class BattleController {
         return battleService.recent(limit);
     }
 
-    @GetMapping("/ranking")
-    public List<RankingEntry> ranking(@RequestParam(defaultValue = "10") int limit) {
-        return battleService.ranking(limit);
+    @GetMapping("/stats")
+    public List<TrainerStats> stats() {
+        return battleService.stats();
     }
 
     @GetMapping("/{id}")
     public Battle findById(@PathVariable String id) {
         return battleService.findById(id);
+    }
+
+    @PostMapping("/{id}/team")
+    public Battle rerollTeam(@PathVariable String id) {
+        return battleService.rerollTeam(id);
     }
 
     @PostMapping("/{id}/rounds")
@@ -61,7 +66,7 @@ public class BattleController {
     }
 
     @PostMapping("/{id}/forfeit")
-    public Battle forfeit(@PathVariable String id, @Valid @RequestBody BattleRequests.Forfeit request) {
-        return battleService.forfeit(id, request.player());
+    public Battle forfeit(@PathVariable String id) {
+        return battleService.forfeit(id);
     }
 }

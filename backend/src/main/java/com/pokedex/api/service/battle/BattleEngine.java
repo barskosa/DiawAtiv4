@@ -12,20 +12,22 @@ import com.pokedex.api.model.Battle;
 import com.pokedex.api.model.BattleAction;
 import com.pokedex.api.model.BattleEvent;
 import com.pokedex.api.model.BattleFighter;
+import com.pokedex.api.model.BattleSide;
 
 /**
- * Regras da batalha PvP (inspiradas na fórmula de dano dos jogos, simplificadas, nível 50).
+ * Regras do desafio contra treinadores (fórmula de dano dos jogos simplificada, nível 50).
  *
  * <ul>
- *   <li>HP de batalha: {@code 2 × HP × 50 / 100 + 60}.</li>
+ *   <li>HP de batalha: {@code HP base + 60}.</li>
  *   <li>Investida ({@link BattleAction#ATTACK}): poder 55, sem tipo, Ataque × Defesa.</li>
  *   <li>Golpe especial ({@link BattleAction#SPECIAL}): poder 70, do 1º tipo do Pokémon,
  *       Ataque especial × Defesa especial, multiplicado pela tabela de tipos.</li>
- *   <li>Defender ({@link BattleAction#DEFEND}): age antes de tudo e reduz à metade o dano recebido
- *       na rodada; não pode ser usada duas rodadas seguidas.</li>
- *   <li>Ordem dos golpes: maior Velocidade primeiro; empate decidido no sorteio.</li>
+ *   <li>Trocar ({@link BattleAction#SWITCH}, só o jogador) e Defender ({@link BattleAction#DEFEND})
+ *       acontecem antes dos golpes. Defender reduz o dano à metade e não pode ser repetido em seguida.</li>
+ *   <li>Golpes em ordem de Velocidade; empate decidido no sorteio.</li>
  *   <li>Dano: {@code ⌊⌊22 × poder × A / D⌋ / 50⌋ + 2}, × efetividade × crítico (1/16, ×1,5)
- *       × variação aleatória de 0,85 a 1,00; mínimo 1 quando o golpe tem efeito.</li>
+ *       × variação de 0,85 a 1,00; mínimo 1 quando o golpe tem efeito.</li>
+ *   <li>Pokémon que desmaia não age; o próximo vivo do time entra. Sem Pokémon vivos, o lado perde.</li>
  * </ul>
  */
 @Component
@@ -37,9 +39,11 @@ public class BattleEngine {
     public static final String ATTACK_NAME = "Investida";
 
     private final RandomGenerator random;
+    private final TrainerAi trainerAi;
 
-    public BattleEngine(RandomGenerator random) {
+    public BattleEngine(RandomGenerator random, TrainerAi trainerAi) {
         this.random = random;
+        this.trainerAi = trainerAi;
     }
 
     public static int battleHp(int baseHp) {
@@ -56,89 +60,142 @@ public class BattleEngine {
         return type == null ? "Rajada Mística" : "Golpe " + TypeChart.label(type);
     }
 
-    /** Prepara os dois participantes com o HP de batalha cheio. */
+    /** Dano base, sem crítico nem variação aleatória (a IA usa para escolher o golpe). */
+    public static double expectedDamage(BattleFighter attacker, BattleFighter defender, BattleAction action) {
+        boolean special = action == BattleAction.SPECIAL;
+        double effectiveness = special ? TypeChart.effectiveness(specialType(attacker), defender.getTypes()) : 1.0;
+        return baseDamage(attacker, defender, special) * effectiveness;
+    }
+
+    private static int baseDamage(BattleFighter attacker, BattleFighter defender, boolean special) {
+        int attackStat = special ? attacker.getSpecialAttack() : attacker.getAttack();
+        int defenseStat = special ? defender.getSpecialDefense() : defender.getDefense();
+        int power = special ? SPECIAL_POWER : ATTACK_POWER;
+        return (2 * LEVEL / 5 + 2) * power * attackStat / Math.max(1, defenseStat) / 50 + 2;
+    }
+
+    /** Prepara os times com HP cheio e o primeiro Pokémon de cada lado em campo. */
     public void start(Battle battle) {
-        for (BattleFighter fighter : List.of(battle.getPlayer1(), battle.getPlayer2())) {
-            fighter.setMaxHp(battleHp(fighter.getHp()));
-            fighter.setCurrentHp(fighter.getMaxHp());
-            fighter.setDefending(false);
-            fighter.setLastAction(null);
+        for (BattleSide side : BattleSide.values()) {
+            for (BattleFighter fighter : battle.team(side)) {
+                fighter.setMaxHp(battleHp(fighter.getHp()));
+                fighter.setCurrentHp(fighter.getMaxHp());
+                fighter.setDefending(false);
+                fighter.setLastAction(null);
+            }
+            battle.setActive(side, 0);
         }
     }
 
-    /** Resolve uma rodada com as ações escolhidas pelos dois jogadores. */
-    public void playRound(Battle battle, BattleAction player1Action, BattleAction player2Action) {
+    /**
+     * Resolve uma rodada: a ação do jogador e a escolhida pela IA do treinador.
+     *
+     * @param switchTo posição no time do jogador, obrigatória quando a ação é {@link BattleAction#SWITCH}
+     */
+    public void playRound(Battle battle, BattleAction playerAction, Integer switchTo) {
         if (battle.isFinished()) {
             throw new ConflictException("battle", "A batalha já terminou.");
         }
-        validateDefend(battle.getPlayer1(), player1Action, "player1Action");
-        validateDefend(battle.getPlayer2(), player2Action, "player2Action");
+        validate(battle, playerAction, switchTo);
 
+        BattleFighter trainerFighter = battle.active(BattleSide.TRAINER);
+        BattleAction trainerAction = trainerAi.choose(trainerFighter, battle.active(BattleSide.PLAYER));
         int round = battle.getRound() + 1;
         battle.setRound(round);
-        BattleAction[] actions = {null, player1Action, player2Action};
+        battle.active(BattleSide.PLAYER).setDefending(false);
+        trainerFighter.setDefending(false);
 
-        // 1) Defesas acontecem antes de qualquer golpe.
-        for (int player = 1; player <= 2; player++) {
-            BattleFighter fighter = battle.fighter(player);
-            fighter.setDefending(actions[player] == BattleAction.DEFEND);
-            if (fighter.isDefending()) {
-                battle.getLog().add(new BattleEvent(round, player, BattleAction.DEFEND, "Defender", 0, 1.0, false,
-                        fighter.getCurrentHp(), fighter.getPokemonName() + " se protegeu!"));
-            }
+        // 1) Troca do jogador acontece antes de tudo.
+        if (playerAction == BattleAction.SWITCH) {
+            BattleFighter leaving = battle.active(BattleSide.PLAYER);
+            leaving.setLastAction(null);
+            battle.setActive(BattleSide.PLAYER, switchTo);
+            BattleFighter entering = battle.active(BattleSide.PLAYER);
+            battle.getLog().add(BattleEvent.narration(round, BattleSide.PLAYER, BattleAction.SWITCH,
+                    battle.getPlayerName() + " trocou " + leaving.getPokemonName() + " por " + entering.getPokemonName() + "!"));
+        }
+        BattleFighter playerFighter = battle.active(BattleSide.PLAYER);
+
+        // 2) Defesas.
+        if (playerAction == BattleAction.DEFEND) {
+            defend(battle, round, BattleSide.PLAYER, playerFighter);
+        }
+        if (trainerAction == BattleAction.DEFEND) {
+            defend(battle, round, BattleSide.TRAINER, trainerFighter);
         }
 
-        // 2) Golpes em ordem de Velocidade.
-        List<Integer> attackers = new ArrayList<>();
-        for (int player = 1; player <= 2; player++) {
-            if (actions[player] != BattleAction.DEFEND) {
-                attackers.add(player);
-            }
+        // 3) Golpes, em ordem de Velocidade. Quem desmaiar antes de agir perde a vez.
+        List<BattleSide> attackers = new ArrayList<>();
+        if (isStrike(playerAction)) {
+            attackers.add(BattleSide.PLAYER);
         }
-        if (attackers.size() == 2 && goesSecond(battle.getPlayer1(), battle.getPlayer2())) {
-            attackers = List.of(2, 1);
+        if (isStrike(trainerAction)) {
+            attackers.add(BattleSide.TRAINER);
         }
-        for (int player : attackers) {
-            BattleFighter attacker = battle.fighter(player);
-            BattleFighter defender = battle.opponentOf(player);
-            if (attacker.isFainted() || defender.isFainted()) {
+        if (attackers.size() == 2 && trainerGoesFirst(playerFighter, trainerFighter)) {
+            attackers = List.of(BattleSide.TRAINER, BattleSide.PLAYER);
+        }
+        for (BattleSide side : attackers) {
+            BattleFighter attacker = side == BattleSide.PLAYER ? playerFighter : trainerFighter;
+            BattleAction action = side == BattleSide.PLAYER ? playerAction : trainerAction;
+            BattleFighter defender = battle.active(side.opponent());
+            if (attacker.isFainted() || battle.active(side) != attacker || battle.isFinished()) {
                 continue;
             }
-            battle.getLog().add(strike(round, player, attacker, defender, actions[player]));
+            battle.getLog().add(strike(round, side, attacker, defender, action));
             if (defender.isFainted()) {
-                int loser = player == 1 ? 2 : 1;
-                battle.getLog().add(new BattleEvent(round, loser, null, null, 0, 1.0, false, 0,
-                        defender.getPokemonName() + " desmaiou! " + attacker.getPlayerName() + " venceu a batalha!"));
-                battle.finish(player, Battle.FinishReason.KNOCKOUT);
+                handleFaint(battle, round, side.opponent(), defender);
             }
         }
 
-        battle.getPlayer1().setLastAction(player1Action);
-        battle.getPlayer2().setLastAction(player2Action);
+        playerFighter.setLastAction(playerAction);
+        trainerFighter.setLastAction(trainerAction);
     }
 
-    /** Desistência: o adversário vence. */
-    public void forfeit(Battle battle, int player) {
+    /** Desistência do jogador: o treinador vence. */
+    public void forfeit(Battle battle) {
         if (battle.isFinished()) {
             throw new ConflictException("battle", "A batalha já terminou.");
         }
-        int winner = player == 1 ? 2 : 1;
-        BattleFighter quitter = battle.fighter(player);
-        battle.getLog().add(new BattleEvent(battle.getRound(), player, null, null, 0, 1.0, false,
-                quitter.getCurrentHp(), quitter.getPlayerName() + " desistiu. "
-                        + battle.fighter(winner).getPlayerName() + " venceu a batalha!"));
-        battle.finish(winner, Battle.FinishReason.FORFEIT);
+        battle.getLog().add(BattleEvent.narration(battle.getRound(), BattleSide.PLAYER, null,
+                battle.getPlayerName() + " desistiu. " + battle.getTrainer().name() + " venceu o desafio!"));
+        battle.finish(BattleSide.TRAINER, Battle.FinishReason.FORFEIT);
     }
 
-    /** {@code true} se o jogador 1 deve agir depois do jogador 2. */
-    private boolean goesSecond(BattleFighter player1, BattleFighter player2) {
-        if (player1.getSpeed() != player2.getSpeed()) {
-            return player1.getSpeed() < player2.getSpeed();
+    private void handleFaint(Battle battle, int round, BattleSide side, BattleFighter fainted) {
+        battle.getLog().add(BattleEvent.narration(round, side, null, fainted.getPokemonName() + " desmaiou!"));
+        List<BattleFighter> team = battle.team(side);
+        for (int index = 0; index < team.size(); index++) {
+            if (!team.get(index).isFainted()) {
+                battle.setActive(side, index);
+                team.get(index).setDefending(false);
+                battle.getLog().add(BattleEvent.narration(round, side, null,
+                        battle.sideName(side) + " enviou " + team.get(index).getPokemonName() + "!"));
+                return;
+            }
+        }
+        BattleSide winner = side.opponent();
+        String message = winner == BattleSide.PLAYER
+                ? battle.getPlayerName() + " derrotou " + battle.getTrainer().name() + "! Insígnia conquistada!"
+                : battle.getTrainer().name() + " venceu o desafio! Todos os Pokémon de " + battle.getPlayerName() + " desmaiaram.";
+        battle.getLog().add(BattleEvent.narration(round, winner, null, message));
+        battle.finish(winner, Battle.FinishReason.KNOCKOUT);
+    }
+
+    private void defend(Battle battle, int round, BattleSide side, BattleFighter fighter) {
+        fighter.setDefending(true);
+        battle.getLog().add(new BattleEvent(round, side, BattleAction.DEFEND, "Defender", 0, 1.0, false,
+                fighter.getCurrentHp(), fighter.getPokemonName() + " se protegeu!"));
+    }
+
+    private boolean trainerGoesFirst(BattleFighter player, BattleFighter trainer) {
+        if (player.getSpeed() != trainer.getSpeed()) {
+            return trainer.getSpeed() > player.getSpeed();
         }
         return random.nextBoolean();
     }
 
-    private BattleEvent strike(int round, int player, BattleFighter attacker, BattleFighter defender, BattleAction action) {
+    private BattleEvent strike(int round, BattleSide side, BattleFighter attacker, BattleFighter defender, BattleAction action) {
         boolean special = action == BattleAction.SPECIAL;
         String moveName = special ? specialName(attacker) : ATTACK_NAME;
         double effectiveness = special ? TypeChart.effectiveness(specialType(attacker), defender.getTypes()) : 1.0;
@@ -146,18 +203,13 @@ public class BattleEngine {
         StringBuilder message = new StringBuilder(attacker.getPokemonName()).append(" usou ").append(moveName).append('!');
         if (effectiveness == 0) {
             message.append(" Não teve efeito em ").append(defender.getPokemonName()).append('.');
-            return new BattleEvent(round, player, action, moveName, 0, 0.0, false, defender.getCurrentHp(), message.toString());
+            return new BattleEvent(round, side, action, moveName, 0, 0.0, false, defender.getCurrentHp(), message.toString());
         }
-
-        int attackStat = special ? attacker.getSpecialAttack() : attacker.getAttack();
-        int defenseStat = special ? defender.getSpecialDefense() : defender.getDefense();
-        int power = special ? SPECIAL_POWER : ATTACK_POWER;
-        int base = (2 * LEVEL / 5 + 2) * power * attackStat / Math.max(1, defenseStat) / 50 + 2;
 
         boolean critical = random.nextInt(16) == 0;
         double variation = 0.85 + random.nextDouble() * 0.15;
         double multiplier = effectiveness * (critical ? 1.5 : 1.0) * variation * (defender.isDefending() ? 0.5 : 1.0);
-        int damage = Math.max(1, (int) Math.floor(base * multiplier));
+        int damage = Math.max(1, (int) Math.floor(baseDamage(attacker, defender, special) * multiplier));
         defender.setCurrentHp(Math.max(0, defender.getCurrentHp() - damage));
 
         if (critical) {
@@ -172,17 +224,35 @@ public class BattleEngine {
             message.append(" A defesa reduziu o dano.");
         }
         message.append(' ').append(defender.getPokemonName()).append(" perdeu ").append(damage).append(" HP.");
-        return new BattleEvent(round, player, action, moveName, damage, effectiveness, critical,
+        return new BattleEvent(round, side, action, moveName, damage, effectiveness, critical,
                 defender.getCurrentHp(), message.toString());
     }
 
-    private static void validateDefend(BattleFighter fighter, BattleAction action, String field) {
+    private static boolean isStrike(BattleAction action) {
+        return action == BattleAction.ATTACK || action == BattleAction.SPECIAL;
+    }
+
+    private static void validate(Battle battle, BattleAction action, Integer switchTo) {
+        BattleFighter active = battle.active(BattleSide.PLAYER);
         if (action == null) {
-            throw new InvalidRequestException(field, "Escolha a ação de " + fighter.getPlayerName() + ".");
+            throw new InvalidRequestException("action", "Escolha uma ação.");
         }
-        if (action == BattleAction.DEFEND && fighter.getLastAction() == BattleAction.DEFEND) {
-            throw new InvalidRequestException(field, fighter.getPokemonName()
-                    + " não pode defender duas rodadas seguidas.");
+        if (action == BattleAction.DEFEND && active.getLastAction() == BattleAction.DEFEND) {
+            throw new InvalidRequestException("action", active.getPokemonName() + " não pode defender duas rodadas seguidas.");
+        }
+        if (action != BattleAction.SWITCH) {
+            return;
+        }
+        List<BattleFighter> team = battle.getPlayerTeam();
+        if (switchTo == null || switchTo < 0 || switchTo >= team.size()) {
+            throw new InvalidRequestException("switchTo", "Informe a posição (0 a " + (team.size() - 1)
+                    + ") do Pokémon que vai entrar.");
+        }
+        if (switchTo == battle.getPlayerActive()) {
+            throw new InvalidRequestException("switchTo", team.get(switchTo).getPokemonName() + " já está em campo.");
+        }
+        if (team.get(switchTo).isFainted()) {
+            throw new InvalidRequestException("switchTo", team.get(switchTo).getPokemonName() + " desmaiou e não pode entrar.");
         }
     }
 }

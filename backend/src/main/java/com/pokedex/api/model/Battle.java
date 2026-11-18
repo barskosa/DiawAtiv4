@@ -7,47 +7,77 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * Documento da coleção {@code battles}: estado completo de uma batalha PvP e o registro de cada
- * rodada. Fica salvo depois de terminar, alimentando o histórico e o ranking.
+ * Documento da coleção {@code battles}: um desafio do jogador contra um treinador. O jogador recebe
+ * um time sorteado do mesmo tamanho da equipe do treinador. Guarda os dois times, os Pokémon ativos,
+ * o vencedor e o registro de cada rodada; fica salvo para o histórico e as estatísticas.
  */
 @Document(collection = "battles")
-@JsonPropertyOrder({"id", "status", "round", "winner", "finishReason", "player1", "player2", "log", "createdAt", "finishedAt"})
+@JsonPropertyOrder({"id", "status", "round", "winner", "finishReason", "playerName", "trainer",
+        "playerActive", "trainerActive", "playerTeam", "trainerTeam", "log", "createdAt", "finishedAt"})
 public class Battle {
 
     public enum Status { IN_PROGRESS, FINISHED }
 
     public enum FinishReason { KNOCKOUT, FORFEIT }
 
+    /** Dados do treinador desafiado (cópia do documento da coleção trainers). */
+    public record TrainerInfo(Integer id, String name, int badges) {
+    }
+
     @Id
     private String id;
     private Status status = Status.IN_PROGRESS;
     private int round;
-    private Integer winner;
+    private BattleSide winner;
     private FinishReason finishReason;
-    private BattleFighter player1;
-    private BattleFighter player2;
+    private String playerName;
+    private TrainerInfo trainer;
+    private int playerActive;
+    private int trainerActive;
+    private List<BattleFighter> playerTeam = new ArrayList<>();
+    private List<BattleFighter> trainerTeam = new ArrayList<>();
     private List<BattleEvent> log = new ArrayList<>();
     private Instant createdAt;
     private Instant finishedAt;
 
-    public BattleFighter fighter(int player) {
-        return player == 1 ? player1 : player2;
+    public List<BattleFighter> team(BattleSide side) {
+        return side == BattleSide.PLAYER ? playerTeam : trainerTeam;
     }
 
-    public BattleFighter opponentOf(int player) {
-        return player == 1 ? player2 : player1;
+    public BattleFighter active(BattleSide side) {
+        return team(side).get(side == BattleSide.PLAYER ? playerActive : trainerActive);
     }
 
+    public void setActive(BattleSide side, int index) {
+        if (side == BattleSide.PLAYER) {
+            playerActive = index;
+        } else {
+            trainerActive = index;
+        }
+    }
+
+    /** Nome de quem comanda o lado: o jogador ou o treinador. */
+    public String sideName(BattleSide side) {
+        return side == BattleSide.PLAYER ? playerName : trainer.name();
+    }
+
+    /** Pokémon que ainda não desmaiaram. */
+    public long remaining(BattleSide side) {
+        return team(side).stream().filter(fighter -> !fighter.isFainted()).count();
+    }
+
+    @JsonIgnore
     public boolean isFinished() {
         return status == Status.FINISHED;
     }
 
-    public void finish(int winnerPlayer, FinishReason reason) {
+    public void finish(BattleSide winnerSide, FinishReason reason) {
         this.status = Status.FINISHED;
-        this.winner = winnerPlayer;
+        this.winner = winnerSide;
         this.finishReason = reason;
         this.finishedAt = Instant.now();
     }
@@ -76,11 +106,11 @@ public class Battle {
         this.round = round;
     }
 
-    public Integer getWinner() {
+    public BattleSide getWinner() {
         return winner;
     }
 
-    public void setWinner(Integer winner) {
+    public void setWinner(BattleSide winner) {
         this.winner = winner;
     }
 
@@ -92,20 +122,52 @@ public class Battle {
         this.finishReason = finishReason;
     }
 
-    public BattleFighter getPlayer1() {
-        return player1;
+    public String getPlayerName() {
+        return playerName;
     }
 
-    public void setPlayer1(BattleFighter player1) {
-        this.player1 = player1;
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
 
-    public BattleFighter getPlayer2() {
-        return player2;
+    public TrainerInfo getTrainer() {
+        return trainer;
     }
 
-    public void setPlayer2(BattleFighter player2) {
-        this.player2 = player2;
+    public void setTrainer(TrainerInfo trainer) {
+        this.trainer = trainer;
+    }
+
+    public int getPlayerActive() {
+        return playerActive;
+    }
+
+    public void setPlayerActive(int playerActive) {
+        this.playerActive = playerActive;
+    }
+
+    public int getTrainerActive() {
+        return trainerActive;
+    }
+
+    public void setTrainerActive(int trainerActive) {
+        this.trainerActive = trainerActive;
+    }
+
+    public List<BattleFighter> getPlayerTeam() {
+        return playerTeam;
+    }
+
+    public void setPlayerTeam(List<BattleFighter> playerTeam) {
+        this.playerTeam = playerTeam == null ? new ArrayList<>() : new ArrayList<>(playerTeam);
+    }
+
+    public List<BattleFighter> getTrainerTeam() {
+        return trainerTeam;
+    }
+
+    public void setTrainerTeam(List<BattleFighter> trainerTeam) {
+        this.trainerTeam = trainerTeam == null ? new ArrayList<>() : new ArrayList<>(trainerTeam);
     }
 
     public List<BattleEvent> getLog() {

@@ -6,14 +6,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * Participante de uma batalha. Guarda uma cópia (snapshot) do Pokémon no momento em que a batalha
- * começou, para que editar ou excluir o Pokémon depois não altere o histórico.
+ * Pokémon participante de uma batalha. Guarda uma cópia (snapshot) do Pokémon no momento em que a
+ * batalha começou, para que editar ou excluir o Pokémon depois não altere o histórico.
  */
-@JsonPropertyOrder({"playerName", "pokemonId", "pokemonName", "types", "hp", "attack", "defense",
-        "specialAttack", "specialDefense", "speed", "maxHp", "currentHp", "defending", "lastAction"})
+@JsonPropertyOrder({"pokemonId", "pokemonName", "types", "hp", "attack", "defense", "specialAttack",
+        "specialDefense", "speed", "maxHp", "currentHp", "defending", "lastAction"})
 public class BattleFighter {
 
-    private String playerName;
     private Integer pokemonId;
     private String pokemonName;
     private List<String> types = new ArrayList<>();
@@ -31,9 +30,8 @@ public class BattleFighter {
     public BattleFighter() {
     }
 
-    public static BattleFighter of(String playerName, Pokemon pokemon) {
+    public static BattleFighter of(Pokemon pokemon) {
         BattleFighter fighter = new BattleFighter();
-        fighter.playerName = playerName;
         fighter.pokemonId = pokemon.getId();
         fighter.pokemonName = pokemon.getName();
         fighter.types = new ArrayList<>(pokemon.getTypes());
@@ -48,14 +46,6 @@ public class BattleFighter {
 
     public boolean isFainted() {
         return currentHp <= 0;
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
     }
 
     public Integer getPokemonId() {

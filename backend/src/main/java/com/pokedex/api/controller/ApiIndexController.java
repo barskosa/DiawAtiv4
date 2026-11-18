@@ -23,12 +23,13 @@ public class ApiIndexController {
         endpoints.put("GET /api/trainers", "Lista os treinadores");
         endpoints.put("GET /api/trainers/{id}", "Busca um treinador");
         endpoints.put("GET /api/trainers/{id}/pokemons", "Equipe do treinador");
-        endpoints.put("POST /api/battles", "Cria uma batalha PvP entre dois Pokémon");
-        endpoints.put("GET /api/battles", "Histórico de batalhas (?limit=10)");
+        endpoints.put("POST /api/battles", "Desafia um treinador com um time sorteado do mesmo tamanho da equipe dele");
+        endpoints.put("GET /api/battles", "Histórico de desafios (?limit=10)");
+        endpoints.put("GET /api/battles/stats", "Vitórias e derrotas por treinador (agregação no MongoDB)");
         endpoints.put("GET /api/battles/{id}", "Estado de uma batalha");
-        endpoints.put("POST /api/battles/{id}/rounds", "Joga uma rodada (ATTACK, SPECIAL ou DEFEND)");
-        endpoints.put("POST /api/battles/{id}/forfeit", "Desistência de um jogador");
-        endpoints.put("GET /api/battles/ranking", "Vitórias por Pokémon (agregação no MongoDB)");
+        endpoints.put("POST /api/battles/{id}/team", "Sorteia outro time antes da primeira rodada");
+        endpoints.put("POST /api/battles/{id}/rounds", "Joga uma rodada (ATTACK, SPECIAL, DEFEND ou SWITCH)");
+        endpoints.put("POST /api/battles/{id}/forfeit", "Desiste do desafio");
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("name", "Pokédex API");
