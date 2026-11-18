@@ -61,11 +61,12 @@ export const api = {
   listTypes: (signal) => request('/types', { signal }),
   listTrainers: (signal) => request('/trainers', { signal }),
 
-  // Arena PvP
-  createBattle: (player1, player2) => request('/battles', { method: 'POST', body: { player1, player2 } }),
+  // Desafios contra os treinadores
+  challengeTrainer: (trainerId, playerName) => request('/battles', { method: 'POST', body: { trainerId, playerName } }),
   getBattle: (id) => request(`/battles/${encodeURIComponent(id)}`),
-  playRound: (id, player1Action, player2Action) => request(`/battles/${encodeURIComponent(id)}/rounds`, { method: 'POST', body: { player1Action, player2Action } }),
-  forfeitBattle: (id, player) => request(`/battles/${encodeURIComponent(id)}/forfeit`, { method: 'POST', body: { player } }),
+  rerollTeam: (id) => request(`/battles/${encodeURIComponent(id)}/team`, { method: 'POST' }),
+  playRound: (id, action, switchTo) => request(`/battles/${encodeURIComponent(id)}/rounds`, { method: 'POST', body: { action, ...(switchTo === undefined ? {} : { switchTo }) } }),
+  forfeitBattle: (id) => request(`/battles/${encodeURIComponent(id)}/forfeit`, { method: 'POST' }),
   listBattles: (limit = 6, signal) => request(`/battles?limit=${limit}`, { signal }),
-  battleRanking: (limit = 5, signal) => request(`/battles/ranking?limit=${limit}`, { signal }),
+  battleStats: (signal) => request('/battles/stats', { signal }),
 }

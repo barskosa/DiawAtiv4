@@ -5,7 +5,7 @@ function getInitials(name) {
   return name.split(' ').slice(0, 2).map((part) => part[0]).join('');
 }
 
-export default function Trainers({ trainers, pokemon, onSelectPokemon }) {
+export default function Trainers({ trainers, pokemon, onSelectPokemon, onChallenge }) {
   const pokemonById = new Map(pokemon.map((entry) => [entry.id, entry]));
 
   return (
@@ -31,6 +31,11 @@ export default function Trainers({ trainers, pokemon, onSelectPokemon }) {
                 </span>
               </div>
             </div>
+
+            <button type="button" className="button button-secondary trainer-challenge" onClick={() => onChallenge(trainer.id)}
+              disabled={trainer.pokemonIds.length === 0} aria-label={`Desafiar ${trainer.name}`}>
+              <Icon name="swords" size={15} />Desafiar
+            </button>
 
             <p className="eyebrow">EQUIPE · {trainer.pokemonIds.length} POKÉMON</p>
             <div className="trainer-team">
