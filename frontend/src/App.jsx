@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { filterPokemon, formatId, STAT_FIELDS } from './data/pokedex.js'
 import { usePokedex } from './hooks/usePokedex.js'
 import { documentTitle, hashForPage, pageFromHash, PAGES } from './routes.js'
@@ -13,8 +13,11 @@ import StatusPanel from './components/StatusPanel.jsx'
 import PokemonForm from './components/PokemonForm.jsx'
 import Toast from './components/Toast.jsx'
 import ConfirmDelete from './components/ConfirmDelete.jsx'
-import Battles from './components/Battles.jsx'
-import Minigames from './components/Minigames.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+
+// Páginas extras carregadas só quando abertas: o carregamento inicial da Pokédex fica menor.
+const Battles = lazy(() => import('./components/Battles.jsx'))
+const Minigames = lazy(() => import('./components/Minigames.jsx'))
 
 const FAVORITES_KEY = 'pokedex-kanto-favorites'
 
@@ -153,36 +156,40 @@ export default function App() {
           <span className="generation-label"><span className="status-dot" /> 1ª geração <span className="topbar-divider" /> Kanto</span>
         </header>
         <main className="main-content" id="conteudo" tabIndex={-1}>
-          {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
-            <section className="hero">
-              <div className="hero-copy">
-                <h1>{isFavoritesPage ? 'Favoritos' : <>Kanto.<br />1ª <em>Geração.</em></>}</h1>
-                <div className="hero-meta"><span><Icon name="pokeball" size={16} /><strong>{isFavoritesPage ? favorites.length : pokemon.length}</strong> Pokémon</span></div>
-              </div>
-              <div className="hero-art" aria-hidden="true">
-                <span className="hero-art-ring ring-one" /><span className="hero-art-ring ring-two" />
-                <PokemonImage pokemon={HERO_POKEMON.bulbasaur} className="hero-pokemon hero-bulbasaur" loading="eager" alt="" />
-                <PokemonImage pokemon={HERO_POKEMON.squirtle} className="hero-pokemon hero-squirtle" loading="eager" alt="" />
-                <PokemonImage pokemon={HERO_POKEMON.charmander} className="hero-pokemon hero-charmander" loading="eager" alt="" />
-              </div>
-            </section>
-            <SearchBar types={types} query={query} onQueryChange={setQuery} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
-            <div className="results-toolbar">
-              <div className="results-title"><h2>{isFavoritesPage ? 'Favoritos' : 'Pokémon'}</h2><span className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'encontrado' : 'encontrados'}</span></div>
-              <div className="results-actions">
-                <button type="button" className="button button-primary new-pokemon-button" onClick={openCreateForm}><Icon name="plus" size={16} /><span>Novo Pokémon</span></button>
-                <span className="toolbar-divider" />
-                <button type="button" className="random-button" onClick={chooseRandomPokemon} title="Selecionar Pokémon aleatório"><Icon name="shuffle" size={16} /><span>Aleatório</span></button>
-                <span className="toolbar-divider" />
-                <label className="sort-label" htmlFor="pokemon-sort">Ordenar por:</label>
-                <select id="pokemon-sort" className="sort-select" value={sort} onChange={(event) => setSort(event.target.value)}>
-                  <option value="id">Nº da Pokédex</option><option value="name">Nome (A–Z)</option>
-                  {STAT_FIELDS.map(({ key, label }) => <option key={key} value={key}>{label} (maior primeiro)</option>)}
-                </select>
-              </div>
-            </div>
-            <PokemonList pokemon={filteredPokemon} favorites={favorites} onSelect={selectPokemon} onToggleFavorite={toggleFavorite} isFavoritesPage={isFavoritesPage} hasFilters={hasFilters} onReset={resetFilters} onExplore={() => navigate('pokedex')} />
-          </>}
+          <ErrorBoundary key={activePage}>
+            <Suspense fallback={<StatusPanel status="loading" />}>
+              {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
+                <section className="hero">
+                  <div className="hero-copy">
+                    <h1>{isFavoritesPage ? 'Favoritos' : <>Kanto.<br />1ª <em>Geração.</em></>}</h1>
+                    <div className="hero-meta"><span><Icon name="pokeball" size={16} /><strong>{isFavoritesPage ? favorites.length : pokemon.length}</strong> Pokémon</span></div>
+                  </div>
+                  <div className="hero-art" aria-hidden="true">
+                    <span className="hero-art-ring ring-one" /><span className="hero-art-ring ring-two" />
+                    <PokemonImage pokemon={HERO_POKEMON.bulbasaur} className="hero-pokemon hero-bulbasaur" loading="eager" alt="" />
+                    <PokemonImage pokemon={HERO_POKEMON.squirtle} className="hero-pokemon hero-squirtle" loading="eager" alt="" />
+                    <PokemonImage pokemon={HERO_POKEMON.charmander} className="hero-pokemon hero-charmander" loading="eager" alt="" />
+                  </div>
+                </section>
+                <SearchBar types={types} query={query} onQueryChange={setQuery} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
+                <div className="results-toolbar">
+                  <div className="results-title"><h2>{isFavoritesPage ? 'Favoritos' : 'Pokémon'}</h2><span className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'encontrado' : 'encontrados'}</span></div>
+                  <div className="results-actions">
+                    <button type="button" className="button button-primary new-pokemon-button" onClick={openCreateForm}><Icon name="plus" size={16} /><span>Novo Pokémon</span></button>
+                    <span className="toolbar-divider" />
+                    <button type="button" className="random-button" onClick={chooseRandomPokemon} title="Selecionar Pokémon aleatório"><Icon name="shuffle" size={16} /><span>Aleatório</span></button>
+                    <span className="toolbar-divider" />
+                    <label className="sort-label" htmlFor="pokemon-sort">Ordenar por:</label>
+                    <select id="pokemon-sort" className="sort-select" value={sort} onChange={(event) => setSort(event.target.value)}>
+                      <option value="id">Nº da Pokédex</option><option value="name">Nome (A–Z)</option>
+                      {STAT_FIELDS.map(({ key, label }) => <option key={key} value={key}>{label} (maior primeiro)</option>)}
+                    </select>
+                  </div>
+                </div>
+                <PokemonList pokemon={filteredPokemon} favorites={favorites} onSelect={selectPokemon} onToggleFavorite={toggleFavorite} isFavoritesPage={isFavoritesPage} hasFilters={hasFilters} onReset={resetFilters} onExplore={() => navigate('pokedex')} />
+              </>}
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
       {selectedPokemon && <PokemonDetails pokemon={selectedPokemon} allPokemon={pokemon} trainers={trainers} onClose={() => selectPokemon(null)} onSelect={selectPokemon} favorites={favorites} onToggleFavorite={toggleFavorite} onEdit={openEditForm} onDelete={setDeleteTarget} />}

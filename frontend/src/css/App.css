@@ -182,3 +182,5 @@
   .nav-item svg { display: none; }
   .nav-item { padding: 0 4px 11px; }
 }
+.status-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
+.status-actions .button { margin-top: 0; }
