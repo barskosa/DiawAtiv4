@@ -1,5 +1,7 @@
 # Pokédex Full Stack: Atividade 04
 
+[![CI](https://github.com/barskosa/DiawAtiv4/actions/workflows/ci.yml/badge.svg)](https://github.com/barskosa/DiawAtiv4/actions/workflows/ci.yml)
+
 Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extras, há **batalhas contra os treinadores** do script (com um time sorteado do mesmo tamanho da equipe deles) e uma página de **minigames**, com regras e placares na API e no MongoDB.
 
 ```text
@@ -69,6 +71,7 @@ controller/  →  service/  →  repository/  →  model/
 ```text
 .
 ├── Script_Pokedex.sql          # Fonte dos dados (fornecido na atividade)
+├── .github/workflows/ci.yml    # CI: testes do backend e do frontend e build das imagens a cada push
 ├── docker-compose.yml          # MongoDB + API + site com um comando
 ├── .env.example                # Modelo para usar o Atlas com o docker compose
 ├── docs/                       # Capturas da interface
@@ -86,8 +89,9 @@ controller/  →  service/  →  repository/  →  model/
 │       ├── dto/                # PokemonRequest (corpo validado do POST/PUT)
 │       ├── exception/          # Erros em Problem Details (RFC 9457), em português
 │       ├── seed/               # Leitura do Script_Pokedex.sql e importação
-│       └── config/             # CORS, MongoDB e propriedades da aplicação
+│       └── config/             # CORS, MongoDB (índices), OpenAPI e propriedades da aplicação
 └── frontend/                   # Pokédex da Atividade 03 integrada à API
+    ├── src/routes.js           # Endereço de cada página na URL (#/batalhas, #/minigames…)
     ├── src/services/api.js     # Cliente HTTP da API
     ├── src/hooks/usePokedex.js # Carregamento e operações de cadastro/edição/exclusão
     ├── src/components/         # Componentes da Atividade 03 + PokemonForm, ConfirmDelete…
@@ -175,6 +179,7 @@ docker compose up -d --build
 | --- | --- |
 | Pokédex (React, servido pelo Nginx) | **http://localhost:3000** |
 | API REST (Spring Boot) | http://localhost:8080 |
+| Documentação interativa da API (Swagger UI) | **http://localhost:8080/swagger-ui.html** |
 | MongoDB | `localhost:27017` |
 
 A primeira execução baixa as imagens e compila o projeto, e leva alguns minutos. Na inicialização, a API importa o `Script_Pokedex.sql` no MongoDB. Para acompanhar: `docker compose logs -f backend`. Para parar: `docker compose down` (os dados continuam salvos). Para apagar também os dados: `docker compose down -v`.
@@ -188,7 +193,7 @@ cd backend
 ./mvnw spring-boot:run          # Windows: .\mvnw.cmd spring-boot:run
 ```
 
-A API sobe em **http://localhost:8080**. Abrir esse endereço no navegador mostra a lista de endpoints. A primeira execução baixa as dependências do Maven e pode levar alguns minutos.
+A API sobe em **http://localhost:8080**. Abrir esse endereço no navegador mostra a lista de endpoints, e **http://localhost:8080/swagger-ui.html** abre a documentação interativa. A primeira execução baixa as dependências do Maven e pode levar alguns minutos.
 
 Outras formas de executar:
 
@@ -316,6 +321,12 @@ Os erros seguem o padrão **Problem Details (RFC 9457)**, com mensagens em portu
 }
 ```
 
+### Documentação interativa (Swagger UI)
+
+Com o backend no ar, **http://localhost:8080/swagger-ui.html** mostra todos os endpoints agrupados (Pokémon, Tipos, Treinadores, Batalhas e Minigames), com os formatos de entrada e saída, e permite executá-los pelo navegador (*Try it out*). A especificação OpenAPI 3.1 fica em `/v3/api-docs`.
+
+![Swagger UI da Pokédex API](docs/swagger.png)
+
 ### Testar com Postman, Insomnia ou Thunder Client
 
 Importe [`backend/http/pokedex-api.postman_collection.json`](backend/http/pokedex-api.postman_collection.json). A coleção executa o CRUD em sequência (o `id` cadastrado é reaproveitado no `PUT` e no `DELETE`), as buscas opcionais e os erros esperados, cada requisição com teste de status. Para o REST Client do VS Code ou o HTTP Client do IntelliJ, use [`backend/http/pokedex-api.http`](backend/http/pokedex-api.http).
@@ -343,6 +354,8 @@ Mantidas da Atividade 03, agora com dados vindos da API:
 - ⭐ Favoritos salvos no navegador, ordenação por número, nome ou atributo, Pokémon aleatório e página de treinadores com insígnias e equipes.
 
 Novas nesta atividade:
+
+- 🔗 **Endereço de cada página na URL**: `#/`, `#/favoritos`, `#/treinadores`, `#/batalhas` e `#/minigames`. Recarregar mantém a página, os botões voltar e avançar do navegador funcionam e dá para compartilhar um link direto.
 
 - ➕ **Cadastrar**: botão **Novo Pokémon** na barra de resultados.
 - ✏️ **Editar**: botão **Editar** nos detalhes. O número da Pokédex fica bloqueado.
@@ -431,7 +444,7 @@ A API valida o jogo, as rodadas (1 a 20) e a pontuação (0 a 100 por rodada).
 
 ## Testes
 
-### Backend: 53 testes
+### Backend: 54 testes
 
 ```bash
 cd backend
@@ -444,17 +457,22 @@ cd backend
 - `BattleEngineTest`: regras das batalhas e decisões do treinador com aleatoriedade controlada. Os danos esperados foram calculados à mão pela fórmula, e o teste cobre também tabela de tipos, ordem, defesa, troca, substituição ao desmaiar, vitória, derrota e desistência.
 - `BattleApiIntegrationTest`: desafios de ponta a ponta com MongoDB real: time do mesmo tamanho da equipe do treinador, novo sorteio, troca, batalha até o fim, treinador sem Pokémon, validações, cópia do Pokémon, histórico e estatísticas.
 - `MinigameApiIntegrationTest`: placar dos minigames: gravação, posição no ranking, ordenação, estatísticas e validações.
+- `MongoIndexesIntegrationTest`: índices criados na inicialização para as consultas da aplicação.
 
 Os testes de integração exigem Docker e são **ignorados automaticamente** quando o Docker não está disponível.
 
-### Frontend: 29 testes
+### Frontend: 33 testes
 
 ```bash
 cd frontend
 npm test
 ```
 
-Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado), as regras de batalha exibidas na tela e a pontuação dos três minigames.
+Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado), as regras de batalha exibidas na tela, a pontuação dos três minigames e as rotas das páginas.
+
+### Integração contínua
+
+O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda a cada push na `main`: testes e build do backend (com MongoDB real via Testcontainers), testes e build do frontend e o build das imagens Docker. O selo no topo deste README mostra o resultado da última execução.
 
 ### Verificação manual sugerida
 
