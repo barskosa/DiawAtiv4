@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { filterPokemon, formatId, STAT_FIELDS } from './data/pokedex.js'
 import { usePokedex } from './hooks/usePokedex.js'
+import { documentTitle, hashForPage, pageFromHash, PAGES } from './routes.js'
 import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import PokemonList from './components/PokemonList.jsx'
@@ -31,7 +32,7 @@ function readFavorites() {
 
 export default function App() {
   const { status, error, pokemon, types, trainers, reload, createPokemon, updatePokemon, deletePokemon } = usePokedex()
-  const [activePage, setActivePage] = useState('pokedex')
+  const [activePage, setActivePage] = useState(() => pageFromHash(window.location.hash) ?? 'pokedex')
   const [query, setQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState([])
   const [sort, setSort] = useState('id')
@@ -74,10 +75,32 @@ export default function App() {
     })
   }
 
-  function navigate(page) {
+  function showPage(page) {
     setActivePage(page)
-    resetFilters()
+    setQuery('')
+    setSelectedTypes([])
     window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+
+  // A URL é a fonte da página atual: voltar/avançar do navegador e links diretos funcionam.
+  useEffect(() => {
+    function handleHashChange() {
+      const page = pageFromHash(window.location.hash)
+      if (page) showPage(page)
+    }
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
+  useEffect(() => {
+    document.title = documentTitle(activePage)
+  }, [activePage])
+
+  function navigate(page) {
+    const hash = hashForPage(page)
+    // Mesma página: só volta ao topo e limpa os filtros. Outra página: muda a URL (o hashchange troca a tela).
+    if (window.location.hash === hash) showPage(page)
+    else window.location.hash = hash
   }
 
   function selectPokemon(entry) {
@@ -126,7 +149,7 @@ export default function App() {
       <Header activePage={activePage} onNavigate={navigate} favoriteCount={favorites.length} pokemonCount={isReady ? pokemon.length : null} />
       <div className="workspace">
         <header className="topbar">
-          <div className="breadcrumb"><Icon name="globe" size={17} /><span>Pokémon</span><Icon name="chevron-right" size={13} /><strong>{activePage === 'trainers' ? 'Treinadores' : activePage === 'battles' ? 'Batalhas' : activePage === 'minigames' ? 'Minigames' : isFavoritesPage ? 'Favoritos' : 'Pokédex'}</strong></div>
+          <div className="breadcrumb"><Icon name="globe" size={17} /><span>Pokémon</span><Icon name="chevron-right" size={13} /><strong>{PAGES[activePage].title}</strong></div>
           <span className="generation-label"><span className="status-dot" /> 1ª geração <span className="topbar-divider" /> Kanto</span>
         </header>
         <main className="main-content" id="conteudo" tabIndex={-1}>

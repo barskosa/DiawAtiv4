@@ -11,7 +11,7 @@ const navigation = [
 export default function Header({ activePage, onNavigate, favoriteCount, pokemonCount }) {
   return (
     <aside className="sidebar">
-      <a className="brand" href="#conteudo" onClick={() => onNavigate('pokedex')} aria-label="Pokédex, início">
+      <a className="brand" href="#/" onClick={(event) => { event.preventDefault(); onNavigate('pokedex') }} aria-label="Pokédex, início">
         <span className="brand-mark"><Icon name="pokeball" size={32} /></span>
         <span>pokédex<span className="brand-period">.</span></span>
       </a>
