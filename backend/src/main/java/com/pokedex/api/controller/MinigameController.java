@@ -18,10 +18,13 @@ import com.pokedex.api.dto.MinigameDtos.ScoreRequest;
 import com.pokedex.api.model.MinigameScore;
 import com.pokedex.api.service.MinigameService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 /** Placar e ranking dos minigames (adivinhar tipo, número da Pokédex e maior atributo). */
 @RestController
+@Tag(name = "Minigames", description = "Placar, ranking e estatísticas dos minigames")
 @RequestMapping("/api/minigames")
 public class MinigameController {
 
@@ -31,6 +34,7 @@ public class MinigameController {
         this.minigameService = minigameService;
     }
 
+    @Operation(summary = "Salva o resultado de uma partida")
     @PostMapping("/scores")
     public ResponseEntity<SavedScore> save(@Valid @RequestBody ScoreRequest request) {
         SavedScore saved = minigameService.save(request);
@@ -39,12 +43,14 @@ public class MinigameController {
         return ResponseEntity.created(location).body(saved);
     }
 
+    @Operation(summary = "Ranking de um minigame")
     @GetMapping("/scores")
     public List<MinigameScore> leaderboard(@RequestParam MinigameScore.Game game,
             @RequestParam(defaultValue = "10") int limit) {
         return minigameService.leaderboard(game, limit);
     }
 
+    @Operation(summary = "Estatísticas de cada minigame")
     @GetMapping("/stats")
     public List<GameStats> stats() {
         return minigameService.stats();

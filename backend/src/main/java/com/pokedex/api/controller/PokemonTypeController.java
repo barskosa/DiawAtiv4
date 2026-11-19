@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pokedex.api.model.PokemonType;
 import com.pokedex.api.service.PokemonTypeService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
+@Tag(name = "Tipos", description = "Catálogo de tipos")
 @RequestMapping("/api/types")
 public class PokemonTypeController {
 
@@ -19,6 +23,7 @@ public class PokemonTypeController {
         this.typeService = typeService;
     }
 
+    @Operation(summary = "Lista os tipos")
     @GetMapping
     public List<PokemonType> findAll() {
         return typeService.findAll();

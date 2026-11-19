@@ -19,10 +19,13 @@ import com.pokedex.api.dto.BattleViews.TrainerStats;
 import com.pokedex.api.model.Battle;
 import com.pokedex.api.service.battle.BattleService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 /** Desafios contra os treinadores: o servidor sorteia o time, joga pelo treinador e salva a batalha. */
 @RestController
+@Tag(name = "Batalhas", description = "Desafios contra os treinadores com time sorteado do mesmo tamanho da equipe")
 @RequestMapping("/api/battles")
 public class BattleController {
 
@@ -32,6 +35,7 @@ public class BattleController {
         this.battleService = battleService;
     }
 
+    @Operation(summary = "Desafia um treinador")
     @PostMapping
     public ResponseEntity<Battle> challenge(@Valid @RequestBody BattleRequests.Challenge request) {
         Battle battle = battleService.challenge(request);
@@ -40,31 +44,37 @@ public class BattleController {
         return ResponseEntity.created(location).body(battle);
     }
 
+    @Operation(summary = "Histórico de desafios")
     @GetMapping
     public List<Summary> recent(@RequestParam(defaultValue = "10") int limit) {
         return battleService.recent(limit);
     }
 
+    @Operation(summary = "Vitórias e derrotas por treinador")
     @GetMapping("/stats")
     public List<TrainerStats> stats() {
         return battleService.stats();
     }
 
+    @Operation(summary = "Estado de uma batalha")
     @GetMapping("/{id}")
     public Battle findById(@PathVariable String id) {
         return battleService.findById(id);
     }
 
+    @Operation(summary = "Sorteia outro time (antes da 1ª rodada)")
     @PostMapping("/{id}/team")
     public Battle rerollTeam(@PathVariable String id) {
         return battleService.rerollTeam(id);
     }
 
+    @Operation(summary = "Joga uma rodada (ATTACK, SPECIAL, DEFEND ou SWITCH)")
     @PostMapping("/{id}/rounds")
     public Battle playRound(@PathVariable String id, @Valid @RequestBody BattleRequests.Round request) {
         return battleService.playRound(id, request);
     }
 
+    @Operation(summary = "Desiste do desafio")
     @PostMapping("/{id}/forfeit")
     public Battle forfeit(@PathVariable String id) {
         return battleService.forfeit(id);

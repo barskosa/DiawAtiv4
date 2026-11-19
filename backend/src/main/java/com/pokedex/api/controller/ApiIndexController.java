@@ -6,7 +6,10 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /** Página inicial da API, útil para conferir rapidamente se o backend está no ar. */
+@Hidden
 @RestController
 public class ApiIndexController {
 
@@ -37,6 +40,7 @@ public class ApiIndexController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("name", "Pokédex API");
         body.put("status", "online");
+        body.put("documentation", "/swagger-ui.html");
         body.put("endpoints", endpoints);
         return body;
     }

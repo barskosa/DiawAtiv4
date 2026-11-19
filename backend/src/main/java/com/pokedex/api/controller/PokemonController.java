@@ -21,9 +21,12 @@ import com.pokedex.api.model.Trainer;
 import com.pokedex.api.service.PokemonService;
 import com.pokedex.api.service.TrainerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+@Tag(name = "Pokémon", description = "CRUD dos Pokémon importados do Script_Pokedex.sql, com busca por nome e tipo")
 @RequestMapping("/api/pokemons")
 public class PokemonController {
 
@@ -39,24 +42,28 @@ public class PokemonController {
      * {@code GET /api/pokemons} lista todos; {@code ?name=char} busca pelo nome e
      * {@code ?type=Grass&type=Poison} filtra por tipo (o Pokémon precisa ter todos os tipos).
      */
+    @Operation(summary = "Lista os Pokémon (filtros opcionais: name e type)")
     @GetMapping
     public List<Pokemon> findAll(@RequestParam(required = false) String name,
             @RequestParam(name = "type", required = false) List<String> types) {
         return pokemonService.findAll(name, types);
     }
 
+    @Operation(summary = "Busca um Pokémon pelo número da Pokédex")
     @GetMapping("/{id}")
     public Pokemon findById(@PathVariable Integer id) {
         return pokemonService.findById(id);
     }
 
     /** Treinadores que possuem o Pokémon na equipe. */
+    @Operation(summary = "Treinadores que têm o Pokémon na equipe")
     @GetMapping("/{id}/trainers")
     public List<Trainer> findTrainers(@PathVariable Integer id) {
         pokemonService.findById(id);
         return trainerService.findByPokemon(id);
     }
 
+    @Operation(summary = "Cadastra um Pokémon (id opcional)")
     @PostMapping
     public ResponseEntity<Pokemon> create(@Valid @RequestBody PokemonRequest request) {
         Pokemon created = pokemonService.create(request);
@@ -65,11 +72,13 @@ public class PokemonController {
         return ResponseEntity.created(location).body(created);
     }
 
+    @Operation(summary = "Atualiza um Pokémon")
     @PutMapping("/{id}")
     public Pokemon update(@PathVariable Integer id, @Valid @RequestBody PokemonRequest request) {
         return pokemonService.update(id, request);
     }
 
+    @Operation(summary = "Remove um Pokémon e o retira das equipes")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         pokemonService.delete(id);
