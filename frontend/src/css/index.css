@@ -6,35 +6,36 @@
 @import './Minigames.css';
 
 :root {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  color: #273246;
-  background: #f6f7f9;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: #222;
+  background: #f2f2f2;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --accent: #df4c3e;
-  --accent-light: #fceeea;
-  --muted: #77808e;
-  --line: #e9ecf0;
-  --type-typeless: #7d8795;
-  --type-normal: #858e98;
-  --type-fire: #de7649;
-  --type-water: #4c91c8;
-  --type-grass: #5e9d70;
-  --type-electric: #bc921a;
-  --type-ice: #4da6aa;
-  --type-fighting: #bd645e;
-  --type-poison: #a173b5;
-  --type-ground: #b28e55;
-  --type-flying: #8890bd;
-  --type-psychic: #d4789e;
-  --type-bug: #8b9d4e;
-  --type-rock: #9d8d62;
-  --type-ghost: #8b77a6;
+  --accent: #cc2b2b;
+  --accent-light: #fbeaea;
+  --text: #222;
+  --muted: #666;
+  --line: #dcdcdc;
+  --type-typeless: #6a7584;
+  --type-normal: #6a7480;
+  --type-fire: #ca501b;
+  --type-water: #2f78b2;
+  --type-grass: #4a835a;
+  --type-electric: #95720e;
+  --type-ice: #368083;
+  --type-fighting: #bc524a;
+  --type-poison: #955bae;
+  --type-ground: #92713d;
+  --type-flying: #646fae;
+  --type-psychic: #ca3f79;
+  --type-bug: #6f7e3a;
+  --type-rock: #83754e;
+  --type-ghost: #8068a0;
   --type-dark: #7c7270;
-  --type-dragon: #7776bb;
-  --type-steel: #6e969f;
+  --type-dragon: #6968ba;
+  --type-steel: #537a82;
 }
 
 * { box-sizing: border-box; }
@@ -51,19 +52,16 @@ img { display: block; max-width: 100%; height: auto; }
 svg { flex-shrink: 0; vertical-align: middle; }
 h1, h2, h3, p { margin-top: 0; }
 button { touch-action: manipulation; }
-::selection { background: #fae1d6; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.skip-link { position: fixed; left: 18px; top: -80px; z-index: 20; padding: 12px 20px; background: #fff; border: 2px solid var(--accent); border-radius: 8px; }
+.skip-link { position: fixed; left: 18px; top: -80px; z-index: 20; padding: 10px 16px; background: #fff; border: 2px solid var(--accent); border-radius: 4px; }
 .skip-link:focus { top: 12px; }
-.icon-button { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #a0a6b0; transition: background .2s, color .2s; }
-.icon-button:hover { color: var(--accent); background: #f8eee9; }
-.button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; border: 1px solid transparent; border-radius: 9px; padding: 11px 17px; font-size: 13px; font-weight: 600; transition: background .2s; }
+.icon-button { display: inline-flex; justify-content: center; align-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #888; }
+.icon-button:hover { color: var(--accent); background: #f2f2f2; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border: 1px solid transparent; border-radius: 4px; padding: 8px 14px; font-size: 14px; font-weight: 600; }
 .button-primary { background: var(--accent); color: #fff; }
-.button-primary:hover { background: #c84134; }
-.button-secondary { background: #fff; border-color: var(--line); }
-.button-secondary:hover { background: #f7f8fa; }
-.eyebrow { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
-.status-dot { width: 6px; height: 6px; display: inline-block; flex-shrink: 0; border-radius: 50%; background: #77a787; box-shadow: 0 0 0 3px #77a78714; }
+.button-primary:hover { background: #a82222; }
+.button-secondary { background: #fff; border-color: #cfd4db; }
+.button-secondary:hover { background: #f2f2f2; }
 .image-fallback { display: flex; align-items: center; justify-content: center; color: #9299a5; aspect-ratio: 1; }
 
 @media (prefers-reduced-motion: reduce) {

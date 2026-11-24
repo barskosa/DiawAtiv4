@@ -34,7 +34,7 @@ export default function TypeGame({ pokemon, types, result, onAnswer }) {
           return (
             <button key={id} type="button" aria-pressed={isSelected} disabled={answered || full} onClick={() => toggle(name)}
               className={`filter-chip type-${name.toLowerCase()} ${status(name)}`}>
-              <span className="type-dot" aria-hidden="true" />{typeLabels[name] || name}
+              {typeLabels[name] || name}
             </button>
           )
         })}

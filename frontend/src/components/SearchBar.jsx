@@ -23,7 +23,7 @@ export default function SearchBar({ types, query, onQueryChange, selectedTypes, 
 
           return (
             <button key={id} type="button" className={`filter-chip type-${name.toLowerCase()} ${isSelected ? 'is-selected' : ''}`} aria-pressed={isSelected} disabled={isDisabled} onClick={() => onToggleType(name)} title={isDisabled ? 'Desmarque um tipo para escolher outro' : name}>
-              <span className="type-dot" aria-hidden="true" />{typeLabels[name] || name}
+              {typeLabels[name] || name}
             </button>
           )
         })}

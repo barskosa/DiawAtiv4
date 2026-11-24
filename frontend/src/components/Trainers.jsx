@@ -37,7 +37,7 @@ export default function Trainers({ trainers, pokemon, onSelectPokemon, onChallen
               <Icon name="swords" size={15} />Desafiar
             </button>
 
-            <p className="eyebrow">EQUIPE · {trainer.pokemonIds.length} POKÉMON</p>
+            <p className="trainer-team-label">Equipe ({trainer.pokemonIds.length})</p>
             <div className="trainer-team">
               {trainer.pokemonIds.map((pokemonId, index) => {
                 const member = pokemonById.get(pokemonId);

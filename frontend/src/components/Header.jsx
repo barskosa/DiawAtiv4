@@ -1,30 +1,30 @@
 import Icon from './Icon.jsx'
 
 const navigation = [
-  { id: 'pokedex', label: 'Pokédex', icon: 'grid' },
-  { id: 'favorites', label: 'Favoritos', icon: 'star' },
-  { id: 'trainers', label: 'Treinadores', icon: 'users' },
-  { id: 'battles', label: 'Batalhas', icon: 'swords' },
-  { id: 'minigames', label: 'Minigames', icon: 'gamepad' },
+  { id: 'pokedex', label: 'Pokédex' },
+  { id: 'favorites', label: 'Favoritos' },
+  { id: 'trainers', label: 'Treinadores' },
+  { id: 'battles', label: 'Batalhas' },
+  { id: 'minigames', label: 'Minigames' },
 ]
 
-export default function Header({ activePage, onNavigate, favoriteCount, pokemonCount }) {
+export default function Header({ activePage, onNavigate, favoriteCount }) {
   return (
-    <aside className="sidebar">
-      <a className="brand" href="#/" onClick={(event) => { event.preventDefault(); onNavigate('pokedex') }} aria-label="Pokédex, início">
-        <span className="brand-mark"><Icon name="pokeball" size={32} /></span>
-        <span>pokédex<span className="brand-period">.</span></span>
-      </a>
-      <nav className="navigation" aria-label="Navegação principal">
-        {navigation.map((item) => (
-          <button key={item.id} type="button" className={`nav-item ${activePage === item.id ? 'is-active' : ''}`} aria-label={item.label} aria-current={activePage === item.id ? 'page' : undefined} onClick={() => onNavigate(item.id)}>
-            <Icon name={item.icon} size={21} /><span>{item.label}</span>
-            {item.id === 'favorites' && <span className="nav-count">{favoriteCount}</span>}
-            {item.id === 'pokedex' && pokemonCount !== null && <span className="nav-count">{pokemonCount}</span>}
-          </button>
-        ))}
-      </nav>
-      <div className="sidebar-region"><Icon name="globe" size={16} /><span>Kanto · 1ª geração</span></div>
-    </aside>
+    <header className="site-header">
+      <div className="site-header-inner">
+        <a className="brand" href="#/" onClick={(event) => { event.preventDefault(); onNavigate('pokedex') }}>
+          <Icon name="pokeball" size={26} />
+          <span>Pokédex</span>
+        </a>
+        <nav className="navigation" aria-label="Navegação principal">
+          {navigation.map((item) => (
+            <button key={item.id} type="button" className={`nav-item ${activePage === item.id ? 'is-active' : ''}`} aria-current={activePage === item.id ? 'page' : undefined} onClick={() => onNavigate(item.id)}>
+              {item.label}
+              {item.id === 'favorites' && favoriteCount > 0 && <span className="nav-count"> ({favoriteCount})</span>}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </header>
   )
 }

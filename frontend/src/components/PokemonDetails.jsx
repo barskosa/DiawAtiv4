@@ -74,7 +74,6 @@ export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose,
 
       <div className="detail-layout">
         <div className="detail-art">
-          <span className="eyebrow">POKÉDEX {formatId(pokemon.id)}</span>
           <PokemonImage pokemon={pokemon} loading="eager" />
         </div>
 
@@ -82,7 +81,7 @@ export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose,
           <div className="type-badges">
             {displayedTypes.map((type) => <TypeBadge key={type.id} type={type} />)}
           </div>
-          <h2 id={titleId} className="detail-title">{pokemon.name}</h2>
+          <h2 id={titleId} className="detail-title">{pokemon.name} <span className="detail-number">{formatId(pokemon.id)}</span></h2>
 
           <section className="detail-stats" aria-label="Atributos base">
             <div className="detail-stats-heading">

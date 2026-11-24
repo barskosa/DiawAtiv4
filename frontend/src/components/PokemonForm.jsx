@@ -95,8 +95,7 @@ export default function PokemonForm({ pokemon, types, allPokemon, onSubmit, onCl
 
       <form className="pokemon-form" onSubmit={handleSubmit} noValidate>
         <header className="form-header">
-          <span className="eyebrow">{isEditing ? `EDITAR ${formatId(pokemon.id)}` : 'NOVO POKÉMON'}</span>
-          <h2 id={titleId}>{isEditing ? `Editar ${pokemon.name}` : 'Cadastrar Pokémon'}</h2>
+          <h2 id={titleId}>{isEditing ? `Editar ${pokemon.name} (${formatId(pokemon.id)})` : 'Cadastrar Pokémon'}</h2>
           <p>Os dados são salvos no MongoDB pela API.</p>
         </header>
 
@@ -157,7 +156,7 @@ export default function PokemonForm({ pokemon, types, allPokemon, onSubmit, onCl
                   className={`filter-chip type-${name.toLowerCase()} ${isSelected ? 'is-selected' : ''}`}
                   aria-pressed={isSelected} disabled={isDisabled} onClick={() => toggleType(name)}
                 >
-                  <span className="type-dot" aria-hidden="true" />{typeLabels[name] || name}
+                  {typeLabels[name] || name}
                 </button>
               )
             })}

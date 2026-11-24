@@ -1,13 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { filterPokemon, formatId, STAT_FIELDS } from './data/pokedex.js'
 import { usePokedex } from './hooks/usePokedex.js'
-import { documentTitle, hashForPage, pageFromHash, PAGES } from './routes.js'
+import { documentTitle, hashForPage, pageFromHash } from './routes.js'
 import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import PokemonList from './components/PokemonList.jsx'
 import PokemonDetails from './components/PokemonDetails.jsx'
 import Trainers from './components/Trainers.jsx'
-import PokemonImage from './components/PokemonImage.jsx'
 import Icon from './components/Icon.jsx'
 import StatusPanel from './components/StatusPanel.jsx'
 import PokemonForm from './components/PokemonForm.jsx'
@@ -20,9 +19,6 @@ const Battles = lazy(() => import('./components/Battles.jsx'))
 const Minigames = lazy(() => import('./components/Minigames.jsx'))
 
 const FAVORITES_KEY = 'pokedex-kanto-favorites'
-
-// Ilustrações fixas do destaque: não dependem da lista carregada da API.
-const HERO_POKEMON = { bulbasaur: { id: 1, name: 'Bulbasaur' }, squirtle: { id: 7, name: 'Squirtle' }, charmander: { id: 4, name: 'Charmander' } }
 
 function readFavorites() {
   try {
@@ -149,37 +145,23 @@ export default function App() {
   return (
     <div className="app-layout">
       <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
-      <Header activePage={activePage} onNavigate={navigate} favoriteCount={favorites.length} pokemonCount={isReady ? pokemon.length : null} />
+      <Header activePage={activePage} onNavigate={navigate} favoriteCount={favorites.length} />
       <div className="workspace">
-        <header className="topbar">
-          <div className="breadcrumb"><Icon name="globe" size={17} /><span>Pokémon</span><Icon name="chevron-right" size={13} /><strong>{PAGES[activePage].title}</strong></div>
-          <span className="generation-label"><span className="status-dot" /> 1ª geração <span className="topbar-divider" /> Kanto</span>
-        </header>
         <main className="main-content" id="conteudo" tabIndex={-1}>
           <ErrorBoundary key={activePage}>
             <Suspense fallback={<StatusPanel status="loading" />}>
               {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
-                <section className="hero">
-                  <div className="hero-copy">
-                    <h1>{isFavoritesPage ? 'Favoritos' : <>Kanto.<br />1ª <em>Geração.</em></>}</h1>
-                    <div className="hero-meta"><span><Icon name="pokeball" size={16} /><strong>{isFavoritesPage ? favorites.length : pokemon.length}</strong> Pokémon</span></div>
-                  </div>
-                  <div className="hero-art" aria-hidden="true">
-                    <span className="hero-art-ring ring-one" /><span className="hero-art-ring ring-two" />
-                    <PokemonImage pokemon={HERO_POKEMON.bulbasaur} className="hero-pokemon hero-bulbasaur" loading="eager" alt="" />
-                    <PokemonImage pokemon={HERO_POKEMON.squirtle} className="hero-pokemon hero-squirtle" loading="eager" alt="" />
-                    <PokemonImage pokemon={HERO_POKEMON.charmander} className="hero-pokemon hero-charmander" loading="eager" alt="" />
-                  </div>
-                </section>
+                <div className="page-heading">
+                  <h1>{isFavoritesPage ? 'Favoritos' : 'Pokédex'}</h1>
+                  <p>{isFavoritesPage ? 'Pokémon marcados com a estrela.' : `${pokemon.length} Pokémon cadastrados. Clique em um deles para ver os detalhes.`}</p>
+                </div>
                 <SearchBar types={types} query={query} onQueryChange={setQuery} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
                 <div className="results-toolbar">
-                  <div className="results-title"><h2>{isFavoritesPage ? 'Favoritos' : 'Pokémon'}</h2><span className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'encontrado' : 'encontrados'}</span></div>
+                  <p className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'Pokémon encontrado' : 'Pokémon encontrados'}</p>
                   <div className="results-actions">
                     <button type="button" className="button button-primary new-pokemon-button" onClick={openCreateForm}><Icon name="plus" size={16} /><span>Novo Pokémon</span></button>
-                    <span className="toolbar-divider" />
-                    <button type="button" className="random-button" onClick={chooseRandomPokemon} title="Selecionar Pokémon aleatório"><Icon name="shuffle" size={16} /><span>Aleatório</span></button>
-                    <span className="toolbar-divider" />
-                    <label className="sort-label" htmlFor="pokemon-sort">Ordenar por:</label>
+                    <button type="button" className="button button-secondary" onClick={chooseRandomPokemon}>Aleatório</button>
+                    <label className="sort-label" htmlFor="pokemon-sort">Ordenar por</label>
                     <select id="pokemon-sort" className="sort-select" value={sort} onChange={(event) => setSort(event.target.value)}>
                       <option value="id">Nº da Pokédex</option><option value="name">Nome (A–Z)</option>
                       {STAT_FIELDS.map(({ key, label }) => <option key={key} value={key}>{label} (maior primeiro)</option>)}

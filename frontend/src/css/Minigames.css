@@ -4,12 +4,12 @@
 .minigame-main { min-width: 0; }
 .minigame-name { max-width: 300px; margin-bottom: 16px; }
 .minigame-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.minigame-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
-.minigame-card h2 { margin: 4px 0 0; font-size: 18px; letter-spacing: -.4px; }
+.minigame-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.minigame-card h2 { margin: 4px 0 0; font-size: 18px; }
 .minigame-card p { margin: 0; font-size: 12px; line-height: 1.6; color: #667184; }
-.minigame-card small { flex: 1; font-size: 10px; line-height: 1.5; color: #9aa1ab; }
+.minigame-card small { flex: 1; font-size: 12px; line-height: 1.5; color: #9aa1ab; }
 .minigame-card .button { width: 100%; margin-top: 6px; }
-.minigame-card-icon { display: inline-flex; padding: 12px; border-radius: 12px; background: var(--accent-light); color: var(--accent); }
+.minigame-card-icon { display: inline-flex; padding: 0; background: none; color: var(--accent); }
 
 .minigame-round-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; font-size: 12px; color: #667184; }
 .minigame-round-bar > span:first-child { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: #344052; }
@@ -21,11 +21,11 @@
 .minigame-progress .is-wrong { background: #d0503f; }
 
 .minigame-stage { display: grid; grid-template-columns: 260px 1fr; gap: 16px; }
-.minigame-pokemon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px; text-align: center; background: radial-gradient(circle, #fdf5ef, #fff); border: 1px solid var(--line); border-radius: 14px; }
+.minigame-pokemon { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px; text-align: center; background: #fdf5ef; border: 1px solid var(--line); border-radius: 6px; }
 .minigame-image { width: 190px; height: 190px; object-fit: contain; filter: drop-shadow(0 12px 8px #283a4620); }
-.minigame-pokemon h2 { margin: 0; font-size: 24px; letter-spacing: -.6px; }
-.minigame-dex { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #9aa1ab; }
-.minigame-play { display: flex; flex-direction: column; gap: 14px; padding: 20px; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+.minigame-pokemon h2 { margin: 0; font-size: 24px; }
+.minigame-dex { font-size: 13px; font-weight: 700; color: #9aa1ab; }
+.minigame-play { display: flex; flex-direction: column; gap: 14px; padding: 20px; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
 .minigame-question { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .minigame-prompt { margin: 0; font-size: 15px; color: #344052; }
 .minigame-types .filter-chip.is-right { background: #e8f4ec; border-color: #4f9d69; color: #2f6a43; }
@@ -36,9 +36,9 @@
 .minigame-number input[type='range'] { width: 100%; accent-color: var(--accent); }
 .minigame-reveal { margin: 0; font-size: 13px; color: #4a5565; }
 .minigame-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-.minigame-stat { display: grid; grid-template-columns: 1fr auto; gap: 6px 8px; align-items: center; padding: 12px; text-align: left; border: 1px solid #e3e7ec; border-radius: 10px; background: #fafbfc; }
+.minigame-stat { display: grid; grid-template-columns: 1fr auto; gap: 6px 8px; align-items: center; padding: 12px; text-align: left; border: 1px solid #e3e7ec; border-radius: 6px; background: #fafbfc; }
 .minigame-stat:hover:not(:disabled) { border-color: var(--accent); background: #fcefec; }
-.minigame-stat-label { font-size: 12px; font-weight: 650; color: #2d384a; }
+.minigame-stat-label { font-size: 12px; font-weight: 600; color: #2d384a; }
 .minigame-stat-value { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .minigame-stat-track { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: #eef0f3; overflow: hidden; }
 .minigame-stat-track span { display: block; height: 100%; background: #9aa6b6; }
@@ -47,7 +47,7 @@
 .minigame-stat.is-wrong { border-color: #d0503f; background: #fbeceb; }
 .minigame-stat:disabled { cursor: default; }
 
-.minigame-feedback { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; border-radius: 10px; border-left: 4px solid; }
+.minigame-feedback { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; border-radius: 6px; border-left: 4px solid; }
 .minigame-feedback strong { font-size: 15px; }
 .minigame-feedback span { font-size: 12px; color: #4a5565; }
 .minigame-feedback .button { margin-top: 6px; }
@@ -55,14 +55,14 @@
 .minigame-feedback.is-partial { background: #fbf4e1; border-color: #d5a021; }
 .minigame-feedback.is-wrong { background: #fbeceb; border-color: #d0503f; }
 
-.minigame-summary { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
-.minigame-summary h2 { margin: 0; font-size: 26px; letter-spacing: -.7px; }
+.minigame-summary { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.minigame-summary h2 { margin: 0; font-size: 26px; }
 .minigame-summary > p { margin: 0; font-size: 13px; color: #667184; }
 .minigame-rounds { width: 100%; max-width: 460px; margin: 8px 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
 .minigame-rounds li { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; text-align: left; border-radius: 8px; background: #fafbfc; }
 .minigame-round-image { width: 40px; height: 40px; object-fit: contain; }
 .minigame-rounds li > span:nth-child(2) { display: flex; flex-direction: column; font-size: 12px; min-width: 0; }
-.minigame-rounds small { color: #8a929f; font-size: 10px; }
+.minigame-rounds small { color: #8a929f; font-size: 12px; }
 .minigame-round-points { font-weight: 700; font-size: 13px; }
 .minigame-round-points.is-right { color: #2f6a43; }
 .minigame-round-points.is-partial { color: #9a7413; }
@@ -71,18 +71,18 @@
 
 .minigame-sidebar { display: flex; flex-direction: column; gap: 16px; }
 .minigame-tabs { display: flex; gap: 4px; margin-bottom: 12px; padding: 3px; border-radius: 8px; background: #f1f3f5; }
-.minigame-tabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; border: 0; border-radius: 6px; background: transparent; font-size: 11px; color: #667184; }
-.minigame-tabs button.is-active { background: #fff; color: #2d384a; font-weight: 650; box-shadow: 0 1px 3px #15202d1a; }
+.minigame-tabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; border: 0; border-radius: 6px; background: transparent; font-size: 13px; color: #667184; }
+.minigame-tabs button.is-active { background: #fff; color: #2d384a; font-weight: 600; box-shadow: 0 1px 3px #15202d1a; }
 .minigame-leaderboard { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
 .minigame-leaderboard li { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; font-size: 12px; }
 .minigame-leaderboard li.is-mine { background: #fcefec; }
-.minigame-rank { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #f1f3f5; font-size: 10px; font-weight: 700; color: #667184; }
+.minigame-rank { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #f1f3f5; font-size: 12px; font-weight: 700; color: #667184; }
 .minigame-leaderboard li:first-child .minigame-rank { background: #f8edc9; color: #8a6d12; }
 .minigame-rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .minigame-rank-score { font-weight: 700; font-variant-numeric: tabular-nums; }
 .minigame-stats-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .minigame-stats-list li { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
-.minigame-stats-list span { font-size: 10px; color: #8a929f; }
+.minigame-stats-list span { font-size: 12px; color: #8a929f; }
 
 @media (max-width: 1200px) {
   .minigame-layout { grid-template-columns: 1fr; }
