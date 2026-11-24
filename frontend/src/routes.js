@@ -28,5 +28,5 @@ export function hashForPage(page) {
 
 export function documentTitle(page) {
   const title = PAGES[page]?.title ?? 'Pokédex'
-  return page === 'pokedex' ? 'Pokédex — Explore Kanto' : `${title} · Pokédex`
+  return page === 'pokedex' ? 'Pokédex — 9 gerações' : `${title} · Pokédex`
 }

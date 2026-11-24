@@ -76,6 +76,21 @@ class PokedexSqlImporterTest {
         assertThat(trainers.get("Lt. Surge").pokemonIds()).containsExactly(26);
     }
 
+    @Test
+    void importsTheGenerationsScriptWithoutTrainers() throws IOException {
+        try (InputStream script = getClass().getResourceAsStream("/db/Script_Pokedex_Geracoes.sql")) {
+            assertThat(script).as("Script_Pokedex_Geracoes.sql empacotado pelo Maven").isNotNull();
+            PokedexData generations = PokedexSqlImporter.fromSql(new String(script.readAllBytes(), StandardCharsets.UTF_8));
+
+            assertThat(generations.pokemons()).hasSize(874);
+            assertThat(generations.pokemons()).first().isEqualTo(
+                    new Pokemon(152, "Chikorita", 45, 49, 65, 49, 65, 45, List.of("Grass")));
+            assertThat(generations.pokemons()).last().extracting(Pokemon::getId).isEqualTo(1025);
+            assertThat(generations.types()).last().isEqualTo(new PokemonType(18, "Fairy"));
+            assertThat(generations.trainers()).isEmpty();
+        }
+    }
+
     private static Pokemon pokemon(int id) {
         return data.pokemons().stream().filter(pokemon -> pokemon.getId() == id).findFirst().orElseThrow();
     }

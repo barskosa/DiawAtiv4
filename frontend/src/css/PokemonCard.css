@@ -32,6 +32,7 @@
 .type-dark { --badge-color: var(--type-dark); }
 .type-dragon { --badge-color: var(--type-dragon); }
 .type-steel { --badge-color: var(--type-steel); }
+.type-fairy { --badge-color: var(--type-fairy); }
 .card-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 4px; margin: 12px 12px 0; padding-top: 10px; border-top: 1px solid #eee; }
 .card-stat { display: flex; align-items: baseline; justify-content: center; gap: 4px; font-size: 13px; font-variant-numeric: tabular-nums; }
 .card-stat abbr { color: #888; font-size: 11px; text-decoration: none; white-space: nowrap; }

@@ -1,7 +1,7 @@
-import { typeLabels } from '../data/pokedex.js'
+import { GENERATIONS, typeLabels } from '../data/pokedex.js'
 import Icon from './Icon.jsx'
 
-export default function SearchBar({ types, query, onQueryChange, selectedTypes, onToggleType, onClearTypes, onReset, hasFilters }) {
+export default function SearchBar({ types, query, onQueryChange, generation, onGenerationChange, selectedTypes, onToggleType, onClearTypes, onReset, hasFilters }) {
   return (
     <section className="search-panel" aria-label="Pesquisa e filtros de Pokémon">
       <div className="search-row">
@@ -10,6 +10,17 @@ export default function SearchBar({ types, query, onQueryChange, selectedTypes, 
           <label className="sr-only" htmlFor="pokemon-search">Pesquisar Pokémon por nome ou ID</label>
           <input id="pokemon-search" type="search" placeholder="Pesquisar por nome ou número" value={query} onChange={(event) => onQueryChange(event.target.value)} autoComplete="off" />
         </div>
+      </div>
+      <div className="filter-heading">
+        <div className="filter-title"><span>Geração</span></div>
+      </div>
+      <div className="quick-filters generation-filters" role="group" aria-label="Filtrar por geração">
+        <button type="button" className={`filter-chip ${generation === null ? 'is-selected' : ''}`} aria-pressed={generation === null} onClick={() => onGenerationChange(null)}>Todas</button>
+        {GENERATIONS.map((item) => (
+          <button key={item.id} type="button" className={`filter-chip ${generation === item.id ? 'is-selected' : ''}`} aria-pressed={generation === item.id} onClick={() => onGenerationChange(generation === item.id ? null : item.id)} title={`#${item.first} a #${item.last}`}>
+            {item.label} <span className="generation-region">{item.region}</span>
+          </button>
+        ))}
       </div>
       <div className="filter-heading">
         <div className="filter-title"><Icon name="filter" size={16} /><span>Tipos</span><span className="filter-hint" id="type-filter-hint">{selectedTypes.length === 2 ? 'Pokémon com os dois tipos' : 'Selecione até 2'}</span></div>

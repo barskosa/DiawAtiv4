@@ -73,11 +73,12 @@
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
-			<!-- O script da atividade, na raiz do repositório, é a fonte de dados do MongoDB. -->
+			<!-- Os scripts da raiz do repositório são a fonte de dados do MongoDB. -->
 			<resource>
 				<directory>${project.basedir}/..</directory>
 				<includes>
 					<include>Script_Pokedex.sql</include>
+					<include>Script_Pokedex_Geracoes.sql</include>
 				</includes>
 				<targetPath>db</targetPath>
 			</resource>

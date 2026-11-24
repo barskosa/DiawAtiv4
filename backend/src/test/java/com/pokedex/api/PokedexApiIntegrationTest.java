@@ -33,7 +33,8 @@ import com.pokedex.api.seed.DatabaseSeeder;
  */
 @Testcontainers(disabledWithoutDocker = true)
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+// Só o Script_Pokedex.sql da atividade; as outras gerações são testadas em GenerationsSeedIntegrationTest.
+@SpringBootTest(properties = "pokedex.seed.generations=false")
 @AutoConfigureMockMvc
 class PokedexApiIntegrationTest {
 

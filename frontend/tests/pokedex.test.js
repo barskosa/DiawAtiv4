@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   filterPokemon,
+  generationOf,
   toFormValues,
   toPokemonPayload,
   toPokemonView,
@@ -113,4 +114,22 @@ test('na edição o próprio nome não conta como repetido', () => {
 test('no máximo dois tipos', () => {
   const values = { ...toFormValues(null), name: 'Teste', types: ['Fire', 'Water', 'Grass'] }
   assert.ok(validatePokemonForm(values, { existing: pokemon }).types)
+})
+
+test('geração pelo número da Pokédex nacional', () => {
+  assert.equal(generationOf(1), 1)
+  assert.equal(generationOf(151), 1)
+  assert.equal(generationOf(152), 2)
+  assert.equal(generationOf(700), 6)
+  assert.equal(generationOf(1025), 9)
+  assert.equal(generationOf(1026), null)
+})
+
+test('filtro por geração', () => {
+  const chikorita = toPokemonView({ id: 152, name: 'Chikorita', hp: 45, attack: 49, defense: 65, specialAttack: 49, specialDefense: 65, speed: 45, types: ['Grass'] }, types)
+  const list = [...pokemon, chikorita]
+  assert.deepEqual(names(filterPokemon(list, { generation: 2 })), ['Chikorita'])
+  assert.equal(filterPokemon(list, { generation: 1 }).length, pokemon.length)
+  assert.equal(filterPokemon(list, { generation: null }).length, list.length)
+  assert.deepEqual(names(filterPokemon(list, { generation: 1, selectedTypes: ['Grass'] })), ['Bulbasaur'])
 })

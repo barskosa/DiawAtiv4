@@ -34,6 +34,7 @@ export default function App() {
   const [activePage, setActivePage] = useState(() => pageFromHash(window.location.hash) ?? 'pokedex')
   const [query, setQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState([])
+  const [generation, setGeneration] = useState(null)
   const [sort, setSort] = useState('id')
   const [selectedId, setSelectedId] = useState(null)
   const [savedFavorites, setFavorites] = useState(readFavorites)
@@ -47,8 +48,8 @@ export default function App() {
   const favorites = isReady ? savedFavorites.filter((id) => pokemon.some((item) => item.id === id)) : savedFavorites
   const selectedPokemon = pokemon.find((item) => item.id === selectedId) ?? null
   const isFavoritesPage = activePage === 'favorites'
-  const hasFilters = query.trim() !== '' || selectedTypes.length > 0
-  const filteredPokemon = filterPokemon(pokemon, { query, selectedTypes, sort, favorites, favoritesOnly: isFavoritesPage })
+  const hasFilters = query.trim() !== '' || selectedTypes.length > 0 || generation !== null
+  const filteredPokemon = filterPokemon(pokemon, { query, selectedTypes, sort, favorites, favoritesOnly: isFavoritesPage, generation })
 
   useEffect(() => {
     try {
@@ -65,6 +66,7 @@ export default function App() {
   function resetFilters() {
     setQuery('')
     setSelectedTypes([])
+    setGeneration(null)
   }
 
   function toggleType(name) {
@@ -78,6 +80,7 @@ export default function App() {
     setActivePage(page)
     setQuery('')
     setSelectedTypes([])
+    setGeneration(null)
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
@@ -153,9 +156,9 @@ export default function App() {
               {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
                 <div className="page-heading">
                   <h1>{isFavoritesPage ? 'Favoritos' : 'Pokédex'}</h1>
-                  <p>{isFavoritesPage ? 'Pokémon marcados com a estrela.' : `${pokemon.length} Pokémon cadastrados. Clique em um deles para ver os detalhes.`}</p>
+                  <p>{isFavoritesPage ? 'Pokémon marcados com a estrela.' : `${pokemon.length} Pokémon de 9 gerações, de Kanto a Paldea.`}</p>
                 </div>
-                <SearchBar types={types} query={query} onQueryChange={setQuery} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
+                <SearchBar types={types} query={query} onQueryChange={setQuery} generation={generation} onGenerationChange={setGeneration} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
                 <div className="results-toolbar">
                   <p className="results-count" role="status" aria-live="polite" aria-atomic="true">{filteredPokemon.length} {filteredPokemon.length === 1 ? 'Pokémon encontrado' : 'Pokémon encontrados'}</p>
                   <div className="results-actions">
@@ -168,7 +171,7 @@ export default function App() {
                     </select>
                   </div>
                 </div>
-                <PokemonList pokemon={filteredPokemon} favorites={favorites} onSelect={selectPokemon} onToggleFavorite={toggleFavorite} isFavoritesPage={isFavoritesPage} hasFilters={hasFilters} onReset={resetFilters} onExplore={() => navigate('pokedex')} />
+                <PokemonList key={`${activePage}-${query}-${selectedTypes.join()}-${generation}-${sort}`} pokemon={filteredPokemon} favorites={favorites} onSelect={selectPokemon} onToggleFavorite={toggleFavorite} isFavoritesPage={isFavoritesPage} hasFilters={hasFilters} onReset={resetFilters} onExplore={() => navigate('pokedex')} />
               </>}
             </Suspense>
           </ErrorBoundary>

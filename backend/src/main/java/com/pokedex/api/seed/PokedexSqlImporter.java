@@ -23,6 +23,8 @@ import com.pokedex.api.seed.SqlScriptParser.SqlTable;
  * Types                               →  types     { _id, name }
  * Trainers + Rel_Trainer_Pokemon      →  trainers  { _id, name, badges, pokemonIds: [25, 3, ...] }
  * </pre>
+ *
+ * <p>As tabelas de treinadores são opcionais: o {@code Script_Pokedex_Geracoes.sql} traz só Pokémon e tipos.</p>
  */
 public final class PokedexSqlImporter {
 
@@ -41,8 +43,8 @@ public final class PokedexSqlImporter {
         SqlTable typeTable = required(tables, "Types");
         SqlTable pokemonTable = required(tables, "Pokemon");
         SqlTable pokemonTypeTable = required(tables, "Rel_Pokemon_Type");
-        SqlTable trainerTable = required(tables, "Trainers");
-        SqlTable trainerPokemonTable = required(tables, "Rel_Trainer_Pokemon");
+        SqlTable trainerTable = tables.get("trainers");
+        SqlTable trainerPokemonTable = tables.get("rel_trainer_pokemon");
 
         // Types → catálogo de tipos
         Map<Integer, PokemonType> typesById = new LinkedHashMap<>();
@@ -90,6 +92,19 @@ public final class PokedexSqlImporter {
                 .filter(pokemonId -> !pokemonsById.containsKey(pokemonId))
                 .forEach(pokemonId -> log.warn("Rel_Pokemon_Type ignorada: Pokémon {} inexistente", pokemonId));
 
+        List<Trainer> trainers = trainerTable == null ? List.of() : trainers(trainerTable, trainerPokemonTable, pokemonsById);
+
+        return new PokedexData(
+                typesById.values().stream().sorted(Comparator.comparing(PokemonType::id)).toList(),
+                pokemonsById.values().stream().sorted(Comparator.comparing(Pokemon::getId)).toList(),
+                trainers);
+    }
+
+    private static List<Trainer> trainers(SqlTable trainerTable, SqlTable trainerPokemonTable,
+            Map<Integer, Pokemon> pokemonsById) {
+        if (trainerPokemonTable == null) {
+            throw new SqlParseException("O script possui Trainers, mas não possui INSERT INTO Rel_Trainer_Pokemon");
+        }
         // Rel_Trainer_Pokemon → equipes (mantém ordem e repetições)
         Map<Integer, List<Integer>> teams = new LinkedHashMap<>();
         int teamTrainer = trainerPokemonTable.columnIndex("ID_Trainer");
@@ -114,10 +129,7 @@ public final class PokedexSqlImporter {
                     teams.getOrDefault(idValue, List.of())));
         }
 
-        return new PokedexData(
-                typesById.values().stream().sorted(Comparator.comparing(PokemonType::id)).toList(),
-                pokemonsById.values().stream().sorted(Comparator.comparing(Pokemon::getId)).toList(),
-                trainers.stream().sorted(Comparator.comparing(Trainer::id)).toList());
+        return trainers.stream().sorted(Comparator.comparing(Trainer::id)).toList();
     }
 
     private static SqlTable required(Map<String, SqlTable> tables, String name) {

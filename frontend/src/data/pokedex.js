@@ -30,7 +30,26 @@ export const typeLabels = {
   Dark: 'Sombrio',
   Dragon: 'Dragão',
   Steel: 'Aço',
+  Fairy: 'Fada',
 };
+
+/** Gerações e regiões, pelo intervalo de números da Pokédex nacional. */
+export const GENERATIONS = [
+  { id: 1, label: '1ª', region: 'Kanto', first: 1, last: 151 },
+  { id: 2, label: '2ª', region: 'Johto', first: 152, last: 251 },
+  { id: 3, label: '3ª', region: 'Hoenn', first: 252, last: 386 },
+  { id: 4, label: '4ª', region: 'Sinnoh', first: 387, last: 493 },
+  { id: 5, label: '5ª', region: 'Unova', first: 494, last: 649 },
+  { id: 6, label: '6ª', region: 'Kalos', first: 650, last: 721 },
+  { id: 7, label: '7ª', region: 'Alola', first: 722, last: 809 },
+  { id: 8, label: '8ª', region: 'Galar', first: 810, last: 905 },
+  { id: 9, label: '9ª', region: 'Paldea', first: 906, last: 1025 },
+];
+
+/** Geração do Pokémon pelo número; cadastrados acima de #1025 não pertencem a nenhuma (null). */
+export function generationOf(id) {
+  return GENERATIONS.find((generation) => id >= generation.first && id <= generation.last)?.id ?? null;
+}
 
 export const STAT_MIN = 1;
 export const STAT_MAX = 255;
@@ -69,7 +88,12 @@ export function formatId(id) {
   return `#${String(id).padStart(3, '0')}`;
 }
 
+// A 1ª geração tem ilustrações locais (frontend/public). As demais vêm do repositório público da
+// PokeAPI, para não acrescentar ~150 MB de imagens ao projeto.
+const REMOTE_ARTWORK = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+
 export function getArtwork(id) {
+  if (id > 151 && id <= 1025) return `${REMOTE_ARTWORK}/${id}.png`;
   return `${import.meta.env.BASE_URL}images/pokemon/${id}.png`;
 }
 
@@ -83,7 +107,7 @@ export function normalizeSearch(text) {
 
 export function filterPokemon(
   list,
-  { query = '', selectedTypes = [], favoritesOnly = false, favorites = [], sort = 'id' } = {},
+  { query = '', selectedTypes = [], favoritesOnly = false, favorites = [], sort = 'id', generation = null } = {},
 ) {
   const search = normalizeSearch(query);
   const searchedId = /^#?\d+$/.test(search) ? Number(search.replace('#', '')) : null;
@@ -101,7 +125,8 @@ export function filterPokemon(
         || entry.types.some((entryType) => normalizeSearch(entryType.name) === selectedType)
       ));
       const matchesFavorites = !favoritesOnly || favoriteIds.has(entry.id);
-      return matchesQuery && matchesTypes && matchesFavorites;
+      const matchesGeneration = generation === null || generationOf(entry.id) === generation;
+      return matchesQuery && matchesTypes && matchesFavorites && matchesGeneration;
     })
     .sort((left, right) => {
       if (sort === 'name') {

@@ -22,6 +22,6 @@ test('âncoras internas não trocam de página', () => {
 })
 
 test('título da aba por página', () => {
-  assert.equal(documentTitle('pokedex'), 'Pokédex — Explore Kanto')
+  assert.equal(documentTitle('pokedex'), 'Pokédex — 9 gerações')
   assert.equal(documentTitle('minigames'), 'Minigames · Pokédex')
 })

@@ -90,6 +90,11 @@ class BattleEngineTest {
         assertThat(TypeChart.effectiveness("Ice", List.of("Dragon", "Flying"))).isEqualTo(4.0);
         assertThat(TypeChart.effectiveness("Fire", List.of("Rock", "Water"))).isEqualTo(0.25);
         assertThat(TypeChart.effectiveness("Water", List.of("Rock", "Ground"))).isEqualTo(4.0);
+        // Tipo Fada (Script_Pokedex_Geracoes.sql)
+        assertThat(TypeChart.effectiveness("Dragon", List.of("Fairy"))).isZero();
+        assertThat(TypeChart.effectiveness("Fairy", List.of("Dragon", "Flying"))).isEqualTo(2.0);
+        assertThat(TypeChart.effectiveness("Steel", List.of("Fairy"))).isEqualTo(2.0);
+        assertThat(TypeChart.effectiveness("Fighting", List.of("Fairy"))).isEqualTo(0.5);
         assertThat(TypeChart.effectiveness(null, List.of("Ghost"))).isEqualTo(1.0);
     }
 

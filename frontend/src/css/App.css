@@ -33,6 +33,9 @@
 .filter-chip:disabled { color: #b0b6bf; border-color: #e3e6ea; cursor: not-allowed; }
 .clear-filters { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; color: var(--accent); background: transparent; font-size: 13px; text-decoration: underline; white-space: nowrap; }
 
+.generation-region { opacity: .7; font-size: .9em; }
+.load-more { display: flex; justify-content: center; padding: 24px 0 8px; }
+
 /* Barra acima da lista */
 .results-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 .results-count { margin: 0; color: var(--muted); font-size: 14px; }

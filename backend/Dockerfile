@@ -2,7 +2,7 @@
 # Script_Pokedex.sql (fonte dos dados) fica lá: docker compose build backend
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
-COPY Script_Pokedex.sql ./
+COPY Script_Pokedex.sql Script_Pokedex_Geracoes.sql ./
 COPY backend/pom.xml backend/
 RUN mvn -f backend/pom.xml -B -q dependency:go-offline
 COPY backend/src backend/src
