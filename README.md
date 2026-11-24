@@ -536,6 +536,6 @@ Atividade realizada individualmente por **Álvaro Barbosa**.
 - [x] Extra: batalhas contra os treinadores (time sorteado do mesmo tamanho), com regras no backend e estatísticas por agregação.
 - [x] Extra: minigames (tipo, número da Pokédex e maior atributo) com ranking salvo no MongoDB.
 - [x] Execução com um comando via Docker (`docker compose up -d --build`).
-- [ ] Configurar o MongoDB Atlas e testar a aplicação com ele.
+- [x] Configurar o MongoDB Atlas e testar a aplicação com ele.
 - [x] Publicar o repositório no GitHub.
 - [ ] Entregar no Canvas o link do repositório.
