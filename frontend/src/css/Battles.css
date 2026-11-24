@@ -153,3 +153,18 @@
 @media (max-width: 420px) {
   .battle-action-buttons { grid-template-columns: 1fr; }
 }
+
+/* Desafio do dia */
+.daily-battle { margin-bottom: 20px; padding: 18px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; }
+.daily-battle.is-loading { color: var(--muted); font-size: 14px; }
+.daily-battle-kicker { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-size: 13px; font-weight: 600; }
+.daily-battle-header h2 { margin: 6px 0 4px; font-size: 22px; }
+.daily-battle-header p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.daily-battle-teams { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.daily-battle-team { display: flex; flex-direction: column; gap: 6px; }
+.daily-battle-label { font-size: 12px; color: var(--muted); }
+.daily-battle-thumbs { display: flex; flex-wrap: wrap; gap: 4px; }
+.daily-battle-thumb { width: 48px; height: 48px; object-fit: contain; }
+.daily-battle-vs { font-weight: 700; color: var(--muted); }
+.daily-battle-result { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; }
+.daily-battle-result.is-win { color: #2e7d32; }

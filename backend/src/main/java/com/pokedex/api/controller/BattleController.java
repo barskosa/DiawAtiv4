@@ -1,8 +1,10 @@
 package com.pokedex.api.controller;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.pokedex.api.dto.BattleRequests;
+import com.pokedex.api.dto.BattleViews.DailyBattle;
+import com.pokedex.api.dto.BattleViews.DailyRankEntry;
 import com.pokedex.api.dto.BattleViews.Summary;
 import com.pokedex.api.dto.BattleViews.TrainerStats;
 import com.pokedex.api.model.Battle;
@@ -54,6 +58,20 @@ public class BattleController {
     @GetMapping("/stats")
     public List<TrainerStats> stats() {
         return battleService.stats();
+    }
+
+    @Operation(summary = "Desafio do dia: treinador e time iguais para todos os jogadores")
+    @GetMapping("/daily")
+    public DailyBattle daily() {
+        return battleService.dailyChallenge();
+    }
+
+    @Operation(summary = "Ranking do desafio do dia (menos rodadas, depois mais HP sobrando)")
+    @GetMapping("/daily/ranking")
+    public List<DailyRankEntry> dailyRanking(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "10") int limit) {
+        return battleService.dailyRanking(date, limit);
     }
 
     @Operation(summary = "Estado de uma batalha")

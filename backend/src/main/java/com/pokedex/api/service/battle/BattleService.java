@@ -1,8 +1,12 @@
 package com.pokedex.api.service.battle;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.random.RandomGenerator;
 
 import org.bson.Document;
@@ -13,6 +17,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.pokedex.api.dto.BattleRequests;
+import com.pokedex.api.dto.BattleViews.DailyBattle;
+import com.pokedex.api.dto.BattleViews.DailyRankEntry;
 import com.pokedex.api.dto.BattleViews.Summary;
 import com.pokedex.api.dto.BattleViews.TrainerStats;
 import com.pokedex.api.exception.ConflictException;
@@ -25,11 +31,15 @@ import com.pokedex.api.model.Pokemon;
 import com.pokedex.api.model.Trainer;
 import com.pokedex.api.repository.BattleRepository;
 import com.pokedex.api.repository.PokemonRepository;
+import com.pokedex.api.service.DailyChallengeService;
 import com.pokedex.api.service.TrainerService;
 
 /**
  * Desafios contra os treinadores: sorteio do time do jogador (mesmo tamanho da equipe do treinador),
  * rodadas, desistência, histórico e estatísticas. Cada alteração é gravada na coleção {@code battles}.
+ *
+ * <p>No desafio do dia, o treinador e o time do jogador são sorteados pela data
+ * ({@link DailyChallengeService}), iguais para todos, e as vitórias entram num ranking diário.</p>
  */
 @Service
 public class BattleService {
@@ -43,18 +53,35 @@ public class BattleService {
     private final BattleEngine engine;
     private final MongoTemplate mongoTemplate;
     private final RandomGenerator random;
+    private final DailyChallengeService daily;
 
     public BattleService(BattleRepository battleRepository, PokemonRepository pokemonRepository,
-            TrainerService trainerService, BattleEngine engine, MongoTemplate mongoTemplate, RandomGenerator random) {
+            TrainerService trainerService, BattleEngine engine, MongoTemplate mongoTemplate, RandomGenerator random,
+            DailyChallengeService daily) {
         this.battleRepository = battleRepository;
         this.pokemonRepository = pokemonRepository;
         this.trainerService = trainerService;
         this.engine = engine;
         this.mongoTemplate = mongoTemplate;
         this.random = random;
+        this.daily = daily;
+    }
+
+    /** Treinador e time do desafio de hoje. */
+    public DailyBattle dailyChallenge() {
+        LocalDate date = daily.today();
+        Trainer trainer = daily.trainerOfTheDay(date);
+        return new DailyBattle(date, new Battle.TrainerInfo(trainer.id(), trainer.name(), trainer.badges()),
+                trainer.pokemonIds(), daily.pokemonsOfTheDay(date, "BATTLE_TEAM", trainer.pokemonIds().size()));
     }
 
     public Battle challenge(BattleRequests.Challenge request) {
+        if (request.isDaily()) {
+            return dailyBattle(request.playerName());
+        }
+        if (request.trainerId() == null) {
+            throw new InvalidRequestException("trainerId", "é obrigatório");
+        }
         Trainer trainer = trainerService.findById(request.trainerId());
         List<Pokemon> trainerTeam = trainerService.findTeam(trainer.id());
         if (trainerTeam.isEmpty()) {
@@ -71,9 +98,52 @@ public class BattleService {
         return battleRepository.insert(battle);
     }
 
-    /** Sorteia outro time para o jogador, permitido só antes da primeira rodada. */
+    private Battle dailyBattle(String playerName) {
+        DailyBattle challenge = dailyChallenge();
+        Battle battle = new Battle();
+        battle.setPlayerName(playerName(playerName));
+        battle.setDailyDate(challenge.date().toString());
+        battle.setTrainer(challenge.trainer());
+        battle.setTrainerTeam(trainerService.findTeam(challenge.trainer().id()).stream().map(BattleFighter::of).toList());
+        battle.setPlayerTeam(challenge.playerTeam().stream().map(BattleFighter::of).toList());
+        battle.setCreatedAt(Instant.now());
+        engine.start(battle);
+        return battleRepository.insert(battle);
+    }
+
+    /**
+     * Ranking do dia: vitórias do desafio diário, a melhor de cada jogador. Menos rodadas primeiro;
+     * no empate, mais HP sobrando no time; depois, quem terminou antes.
+     */
+    public List<DailyRankEntry> dailyRanking(LocalDate date, int limit) {
+        LocalDate day = date == null ? daily.today() : date;
+        Query query = new Query(Criteria.where("dailyDate").is(day.toString())
+                .and("status").is(Battle.Status.FINISHED.name())
+                .and("winner").is(BattleSide.PLAYER.name()));
+        Comparator<Battle> best = Comparator.comparingInt(Battle::getRound)
+                .thenComparing(Comparator.comparingDouble(Battle::playerHpPercent).reversed())
+                .thenComparing(Battle::getFinishedAt);
+        Map<String, Battle> bestByPlayer = new LinkedHashMap<>();
+        mongoTemplate.find(query, Battle.class).stream().sorted(best)
+                .forEach(battle -> bestByPlayer.putIfAbsent(battle.getPlayerName(), battle));
+
+        List<DailyRankEntry> ranking = new ArrayList<>();
+        for (Battle battle : bestByPlayer.values()) {
+            if (ranking.size() == Math.clamp(limit, 1, 50)) {
+                break;
+            }
+            ranking.add(new DailyRankEntry(ranking.size() + 1, battle.getPlayerName(), battle.getRound(),
+                    battle.playerHpPercent(), battle.getId(), battle.getFinishedAt()));
+        }
+        return ranking;
+    }
+
+    /** Sorteia outro time para o jogador, permitido só antes da primeira rodada e fora do desafio do dia. */
     public Battle rerollTeam(String id) {
         Battle battle = findById(id);
+        if (battle.getDailyDate() != null) {
+            throw new ConflictException("battle", "No desafio do dia o time é o mesmo para todos os jogadores.");
+        }
         if (battle.isFinished() || battle.getRound() > 0) {
             throw new ConflictException("battle", "O time só pode ser sorteado de novo antes da primeira rodada.");
         }

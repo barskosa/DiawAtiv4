@@ -6,11 +6,27 @@ function describe(battle) {
   return battle.winner === 'PLAYER' ? `${battle.playerName} venceu ${opponent}` : `${opponent} venceu ${battle.playerName}`
 }
 
-export default function BattleSidebar({ history, stats, status, currentId, onResume, onRefresh }) {
+export default function BattleSidebar({ history, stats, dailyRanking = [], playerName, status, currentId, onResume, onRefresh }) {
   const badges = stats.filter((entry) => entry.playerWins > 0).length
 
   return (
     <aside className="battle-sidebar" aria-label="Estatísticas e histórico de desafios">
+      <section className="battle-panel">
+        <header className="battle-panel-header"><h3><Icon name="calendar" size={16} />Ranking do dia</h3></header>
+        {status !== 'error' && dailyRanking.length === 0 && <p className="battle-empty">Ninguém venceu o desafio de hoje ainda.</p>}
+        {dailyRanking.length > 0 && (
+          <ol className="minigame-leaderboard">
+            {dailyRanking.map((entry) => (
+              <li key={entry.battleId} className={entry.playerName === playerName ? 'is-mine' : ''}>
+                <span className="minigame-rank">{entry.position}</span>
+                <span className="minigame-rank-name">{entry.playerName}</span>
+                <span className="minigame-rank-score" title={`${entry.hpPercent}% de HP no fim`}>{entry.rounds} {entry.rounds === 1 ? 'rodada' : 'rodadas'}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
       <section className="battle-panel">
         <header className="battle-panel-header">
           <h3><Icon name="award" size={16} />Desempenho</h3>
@@ -40,7 +56,7 @@ export default function BattleSidebar({ history, stats, status, currentId, onRes
           <ul className="battle-history">
             {history.map((battle) => (
               <li key={battle.id} className={battle.id === currentId ? 'is-current' : ''}>
-                <span>{describe(battle)}</span>
+                <span>{describe(battle)}{battle.dailyDate && <span className="minigame-daily-tag">Diário</span>}</span>
                 <small>
                   {battle.status === 'FINISHED'
                     ? `${battle.finishReason === 'FORFEIT' ? 'Desistência' : 'Nocaute'} · ${battle.rounds} ${battle.rounds === 1 ? 'rodada' : 'rodadas'}`

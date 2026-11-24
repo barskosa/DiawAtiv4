@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../services/api.js'
-import { formatId, STAT_FIELDS, typeLabels } from '../data/pokedex.js'
+import { formatId, STAT_FIELDS, toPokemonView, typeLabels } from '../data/pokedex.js'
 import Icon from './Icon.jsx'
 import PokemonImage from './PokemonImage.jsx'
 import TypeBadge from './TypeBadge.jsx'
@@ -10,6 +10,7 @@ import StatGame from './minigames/StatGame.jsx'
 import { GAMES, POINTS_PER_ROUND, ROUNDS, drawPokemon, gameById, maxDexNumber } from './minigames/minigameLogic.js'
 
 const NAME_KEY = 'pokedex-player-name'
+const DAILY_KEY = 'pokedex-daily-minigames'
 
 function readName() {
   try {
@@ -19,9 +20,27 @@ function readName() {
   }
 }
 
-function newMatch(game, pokemon) {
-  const first = drawPokemon(pokemon)
-  return { game, round: 1, current: first, usedIds: first ? [first.id] : [], result: null, rounds: [], saved: null, saveError: '' }
+// Resultado do desafio do dia em cada jogo, neste navegador: { date, results: { TYPE: { score, position } } }.
+// Serve para permitir uma tentativa por dia; o ranking em si fica no MongoDB.
+function readDailyResults() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DAILY_KEY) || 'null')
+    return saved && typeof saved === 'object' ? saved : { date: null, results: {} }
+  } catch {
+    return { date: null, results: {} }
+  }
+}
+
+function formatDay(date) {
+  if (!date) return ''
+  const [year, month, day] = date.split('-')
+  return `${day}/${month}/${year}`
+}
+
+/** Partida livre (Pokémon sorteados no navegador) ou desafio do dia (fila de Pokémon vinda da API). */
+function newMatch(game, pokemon, daily = null) {
+  const first = daily ? daily.queue[0] : drawPokemon(pokemon)
+  return { game, daily, round: 1, current: first, usedIds: first ? [first.id] : [], result: null, rounds: [], saved: null, saveError: '' }
 }
 
 function feedbackTitle(result) {
@@ -44,19 +63,47 @@ export default function Minigames({ pokemon, types }) {
   const [playerName, setPlayerName] = useState(readName)
   const [match, setMatch] = useState(null)
   const [boardGame, setBoardGame] = useState('TYPE')
+  const [boardMode, setBoardMode] = useState('daily')
   const [board, setBoard] = useState({ status: 'loading', leaderboard: [], stats: [] })
+  const [dailies, setDailies] = useState({ status: 'loading', date: null, byGame: {} })
+  const [dailyResults, setDailyResults] = useState(readDailyResults)
   const maxNumber = maxDexNumber(pokemon)
+  const playedToday = dailyResults.date === dailies.date ? dailyResults.results : {}
 
-  const loadBoard = useCallback(async (game) => {
+  const loadBoard = useCallback(async (game, mode) => {
     try {
-      const [leaderboard, stats] = await Promise.all([api.minigameLeaderboard(game), api.minigameStats()])
+      const [leaderboard, stats] = await Promise.all([
+        mode === 'daily' ? api.dailyMinigameRanking(game) : api.minigameLeaderboard(game),
+        api.minigameStats(),
+      ])
       setBoard({ status: 'ready', leaderboard, stats })
     } catch {
       setBoard((current) => ({ ...current, status: 'error' }))
     }
   }, [])
 
-  useEffect(() => { loadBoard(boardGame) }, [boardGame, loadBoard])
+  useEffect(() => { loadBoard(boardGame, boardMode) }, [boardGame, boardMode, loadBoard])
+
+  // Os três desafios do dia: mesmos Pokémon para todos os jogadores, definidos pela API.
+  useEffect(() => {
+    const controller = new AbortController()
+    Promise.all(GAMES.map((item) => api.dailyMinigame(item.id, controller.signal)))
+      .then((list) => setDailies({
+        status: 'ready',
+        date: list[0]?.date ?? null,
+        byGame: Object.fromEntries(list.map((entry) => [entry.game, { date: entry.date, queue: entry.pokemon.map((document) => toPokemonView(document, types)) }])),
+      }))
+      .catch((failure) => { if (failure.name !== 'AbortError') setDailies((current) => ({ ...current, status: 'error' })) })
+    return () => controller.abort()
+  }, [types])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DAILY_KEY, JSON.stringify(dailyResults))
+    } catch {
+      // Sem armazenamento, o desafio do dia pode ser repetido neste navegador.
+    }
+  }, [dailyResults])
 
   useEffect(() => {
     try {
@@ -66,9 +113,10 @@ export default function Minigames({ pokemon, types }) {
     }
   }, [playerName])
 
-  function start(game) {
+  function start(game, daily = false) {
     setBoardGame(game)
-    setMatch(newMatch(game, pokemon))
+    setBoardMode(daily ? 'daily' : 'all')
+    setMatch(newMatch(game, pokemon, daily ? dailies.byGame[game] : null))
   }
 
   function answer(result) {
@@ -83,19 +131,25 @@ export default function Minigames({ pokemon, types }) {
 
   async function next() {
     if (match.round < ROUNDS) {
-      const upcoming = drawPokemon(pokemon, match.usedIds)
+      const upcoming = match.daily ? match.daily.queue[match.round] : drawPokemon(pokemon, match.usedIds)
       setMatch((current) => ({ ...current, round: current.round + 1, current: upcoming, usedIds: [...current.usedIds, upcoming.id], result: null }))
       return
     }
     const total = match.rounds.reduce((sum, round) => sum + round.points, 0)
     setMatch((current) => ({ ...current, finished: true }))
     try {
-      const saved = await api.saveMinigameScore(match.game, playerName.trim() || undefined, total, ROUNDS)
+      const saved = await api.saveMinigameScore(match.game, playerName.trim() || undefined, total, ROUNDS, Boolean(match.daily))
       setMatch((current) => ({ ...current, saved }))
+      if (match.daily) {
+        setDailyResults((current) => ({
+          date: match.daily.date,
+          results: { ...(current.date === match.daily.date ? current.results : {}), [match.game]: { score: total, position: saved.position } },
+        }))
+      }
     } catch (failure) {
       setMatch((current) => ({ ...current, saveError: failure.message || 'Não foi possível salvar o placar.' }))
     }
-    loadBoard(match.game)
+    loadBoard(match.game, boardMode)
   }
 
   const game = match && gameById(match.game)
@@ -106,7 +160,10 @@ export default function Minigames({ pokemon, types }) {
       <div className="section-heading minigame-heading">
         <div>
           <h1 className="section-title" id="minigames-title">Minigames</h1>
-          <p className="section-description">Um Pokémon é sorteado a cada rodada. Partidas de {ROUNDS} rodadas, até {POINTS_PER_ROUND} pontos por rodada.</p>
+          <p className="section-description">
+            Todo dia, cada jogo tem um <strong>desafio do dia</strong> com os mesmos {ROUNDS} Pokémon para todos os jogadores e um ranking próprio,
+            que recomeça à meia-noite (horário de Brasília). No treino livre, os Pokémon são sorteados a cada partida.
+          </p>
         </div>
         {match && <button type="button" className="button button-secondary" onClick={() => setMatch(null)}><Icon name="arrow-left" size={15} />Escolher jogo</button>}
       </div>
@@ -127,19 +184,29 @@ export default function Minigames({ pokemon, types }) {
                     <h2>{item.title}</h2>
                     <p>{item.description}</p>
                     <small>{item.rule}</small>
-                    <button type="button" className="button button-primary" onClick={() => start(item.id)} disabled={pokemon.length === 0}>
-                      <Icon name="gamepad" size={16} />Jogar
-                    </button>
+                    <div className="minigame-card-actions">
+                      {playedToday[item.id]
+                        ? <p className="minigame-daily-done"><Icon name="trophy" size={15} />Desafio de hoje: <strong>{playedToday[item.id].score} pts</strong> · {playedToday[item.id].position}º lugar</p>
+                        : (
+                          <button type="button" className="button button-primary" onClick={() => start(item.id, true)} disabled={!dailies.byGame[item.id]}>
+                            <Icon name="calendar" size={16} />Desafio do dia{dailies.date && <span className="minigame-daily-date">{formatDay(dailies.date)}</span>}
+                          </button>
+                        )}
+                      <button type="button" className="button button-secondary" onClick={() => start(item.id)} disabled={pokemon.length === 0}>
+                        <Icon name="gamepad" size={16} />Treino livre
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
+              {dailies.status === 'error' && <p className="form-alert" role="alert">Não foi possível carregar o desafio do dia. O treino livre continua disponível.</p>}
             </>
           )}
 
           {match && !match.finished && match.current && (
             <div className="minigame-round">
               <div className="minigame-round-bar">
-                <span><Icon name={game.icon} size={15} />{game.title}</span>
+                <span><Icon name={game.icon} size={15} />{game.title}{match.daily && <span className="minigame-daily-tag">Desafio do dia</span>}</span>
                 <span className="minigame-progress" aria-label={`Rodada ${match.round} de ${ROUNDS}`}>
                   {Array.from({ length: ROUNDS }, (_, index) => (
                     <span key={index} className={index < match.rounds.length ? (match.rounds[index].correct ? 'is-right' : match.rounds[index].points > 0 ? 'is-partial' : 'is-wrong') : index === match.round - 1 ? 'is-current' : ''} />
@@ -182,7 +249,7 @@ export default function Minigames({ pokemon, types }) {
               <h2 id="minigame-summary-title">{total} de {ROUNDS * POINTS_PER_ROUND} pontos</h2>
               <p>
                 {game.title} · {match.rounds.filter((round) => round.correct).length} {match.rounds.filter((round) => round.correct).length === 1 ? 'acerto' : 'acertos'} em {ROUNDS} rodadas.
-                {match.saved && <> Você ficou em <strong>{match.saved.position}º lugar</strong> no ranking.</>}
+                {match.saved && <> Você ficou em <strong>{match.saved.position}º lugar</strong> {match.daily ? 'no ranking de hoje' : 'no ranking geral'}.</>}
                 {!match.saved && !match.saveError && ' Salvando no ranking…'}
               </p>
               {match.saveError && <p className="form-alert" role="alert">{match.saveError}</p>}
@@ -196,7 +263,9 @@ export default function Minigames({ pokemon, types }) {
                 ))}
               </ol>
               <div className="minigame-summary-actions">
-                <button type="button" className="button button-primary" onClick={() => start(match.game)}><Icon name="refresh" size={16} />Jogar de novo</button>
+                {match.daily
+                  ? <button type="button" className="button button-primary" onClick={() => start(match.game)}><Icon name="gamepad" size={16} />Treinar no modo livre</button>
+                  : <button type="button" className="button button-primary" onClick={() => start(match.game)}><Icon name="refresh" size={16} />Jogar de novo</button>}
                 <button type="button" className="button button-secondary" onClick={() => setMatch(null)}>Escolher outro jogo</button>
               </div>
             </section>
@@ -206,6 +275,10 @@ export default function Minigames({ pokemon, types }) {
         <aside className="minigame-sidebar" aria-label="Ranking dos minigames">
           <section className="battle-panel">
             <header className="battle-panel-header"><h3><Icon name="trophy" size={16} />Ranking</h3></header>
+            <div className="minigame-tabs ranking-mode" role="tablist" aria-label="Período do ranking">
+              <button type="button" role="tab" aria-selected={boardMode === 'daily'} className={boardMode === 'daily' ? 'is-active' : ''} onClick={() => setBoardMode('daily')}>Hoje</button>
+              <button type="button" role="tab" aria-selected={boardMode === 'all'} className={boardMode === 'all' ? 'is-active' : ''} onClick={() => setBoardMode('all')}>Geral</button>
+            </div>
             <div className="minigame-tabs" role="tablist" aria-label="Escolher ranking">
               {GAMES.map((item) => (
                 <button key={item.id} type="button" role="tab" aria-selected={boardGame === item.id} className={boardGame === item.id ? 'is-active' : ''}
@@ -215,11 +288,11 @@ export default function Minigames({ pokemon, types }) {
               ))}
             </div>
             {board.status === 'error' && <p className="battle-empty">Não foi possível carregar.</p>}
-            {board.status !== 'error' && board.leaderboard.length === 0 && <p className="battle-empty">Ninguém jogou ainda. Seja o primeiro!</p>}
+            {board.status !== 'error' && board.leaderboard.length === 0 && <p className="battle-empty">{boardMode === 'daily' ? 'Ninguém jogou o desafio de hoje. Seja o primeiro!' : 'Ninguém jogou ainda. Seja o primeiro!'}</p>}
             {board.leaderboard.length > 0 && (
               <ol className="minigame-leaderboard">
                 {board.leaderboard.map((entry, index) => (
-                  <li key={entry.id} className={match?.saved?.score.id === entry.id ? 'is-mine' : ''}>
+                  <li key={entry.id ?? entry.playerName} className={(boardMode === 'daily' ? entry.playerName === (playerName.trim() || 'Anônimo') : match?.saved?.score.id === entry.id) ? 'is-mine' : ''}>
                     <span className="minigame-rank">{index + 1}</span>
                     <span className="minigame-rank-name">{entry.playerName}</span>
                     <span className="minigame-rank-score">{entry.score}</span>

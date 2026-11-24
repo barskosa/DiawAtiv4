@@ -27,6 +27,7 @@ const paths = {
   tag: <><path d="M3 12V4h8l10 10-8 8Z" /><circle cx="7.5" cy="8.5" r="1.5" /></>,
   hash: <path d="M5 9h15M4 15h15M10 3 8 21M16 3l-2 18" />,
   chart: <path d="M4 20V10m6 10V4m6 16v-7m4 7H3" />,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
   check: <path d="m5 12 5 5L20 7" />,
 }
 

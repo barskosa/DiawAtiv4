@@ -12,10 +12,18 @@ public final class BattleRequests {
     private BattleRequests() {
     }
 
-    /** {@code POST /api/battles}: treinador desafiado e nome do jogador (opcional). */
+    /**
+     * {@code POST /api/battles}: treinador desafiado e nome do jogador (opcional). Com {@code daily: true}
+     * é o desafio do dia: o treinador e o time do jogador são os do dia, e {@code trainerId} é dispensado.
+     */
     public record Challenge(
-            @NotNull(message = "é obrigatório") @Positive(message = "deve ser um número positivo") Integer trainerId,
-            @Size(max = 20, message = "deve ter no máximo 20 caracteres") String playerName) {
+            @Positive(message = "deve ser um número positivo") Integer trainerId,
+            @Size(max = 20, message = "deve ter no máximo 20 caracteres") String playerName,
+            Boolean daily) {
+
+        public boolean isDaily() {
+            return Boolean.TRUE.equals(daily);
+        }
     }
 
     /**

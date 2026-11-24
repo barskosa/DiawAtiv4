@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
  *   <li>battles.createdAt: histórico (mais recentes primeiro).</li>
  *   <li>battles.status + trainer._id: estatísticas por treinador ($match/$group).</li>
  *   <li>minigame_scores.game + score + createdAt: ranking de cada minigame e posição do placar.</li>
+ *   <li>minigame_scores.dailyDate + game e battles.dailyDate + winner: rankings do desafio do dia.</li>
  * </ul>
  */
 @Component
@@ -44,6 +45,10 @@ public class MongoIndexes implements ApplicationRunner {
                 .named("status_trainer"));
         create("minigame_scores", new Index().on("game", Sort.Direction.ASC).on("score", Sort.Direction.DESC)
                 .on("createdAt", Sort.Direction.ASC).named("game_score_createdAt"));
+        create("minigame_scores", new Index().on("dailyDate", Sort.Direction.ASC).on("game", Sort.Direction.ASC)
+                .named("dailyDate_game"));
+        create("battles", new Index().on("dailyDate", Sort.Direction.ASC).on("winner", Sort.Direction.ASC)
+                .named("dailyDate_winner"));
         log.info("Índices do MongoDB conferidos");
     }
 

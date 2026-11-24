@@ -99,3 +99,10 @@
   .minigame-heading { flex-wrap: wrap; }
   .minigame-name { max-width: none; }
 }
+
+/* Desafio do dia */
+.minigame-card-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.minigame-daily-date { margin-left: 6px; font-weight: 400; opacity: .8; }
+.minigame-daily-done { display: flex; align-items: center; gap: 6px; margin: 0; padding: 8px 10px; border-radius: 6px; background: var(--accent-light); font-size: 13px; }
+.minigame-daily-tag { margin-left: 8px; padding: 1px 6px; border-radius: 4px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; vertical-align: middle; }
+.ranking-mode { margin-bottom: 8px; }

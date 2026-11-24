@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * o vencedor e o registro de cada rodada; fica salvo para o histórico e as estatísticas.
  */
 @Document(collection = "battles")
-@JsonPropertyOrder({"id", "status", "round", "winner", "finishReason", "playerName", "trainer",
+@JsonPropertyOrder({"id", "status", "round", "winner", "finishReason", "playerName", "dailyDate", "trainer",
         "playerActive", "trainerActive", "playerTeam", "trainerTeam", "log", "createdAt", "finishedAt"})
 public class Battle {
 
@@ -35,6 +35,8 @@ public class Battle {
     private BattleSide winner;
     private FinishReason finishReason;
     private String playerName;
+    /** Data do desafio do dia (ex.: 2026-11-24); {@code null} nos desafios livres. */
+    private String dailyDate;
     private TrainerInfo trainer;
     private int playerActive;
     private int trainerActive;
@@ -128,6 +130,21 @@ public class Battle {
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
+    }
+
+    public String getDailyDate() {
+        return dailyDate;
+    }
+
+    public void setDailyDate(String dailyDate) {
+        this.dailyDate = dailyDate;
+    }
+
+    /** HP somado do time do jogador, em porcentagem do total (critério de desempate do ranking do dia). */
+    public double playerHpPercent() {
+        int max = playerTeam.stream().mapToInt(BattleFighter::getMaxHp).sum();
+        int current = playerTeam.stream().mapToInt(BattleFighter::getCurrentHp).sum();
+        return max == 0 ? 0 : Math.round(current * 1000.0 / max) / 10.0;
     }
 
     public TrainerInfo getTrainer() {

@@ -151,7 +151,7 @@ export default function BattleView({ battle, busy, error, onAction, onReroll, on
       <div className="battle-round-bar">
         <span><Icon name="swords" size={15} />{battle.playerName} x {battle.trainer.name} · {finished ? 'Desafio encerrado' : `Rodada ${battle.round + 1}`}</span>
         <span className="battle-score">{remainingPlayer} x {remainingTrainer} Pokémon em pé</span>
-        {!finished && battle.round === 0 && (
+        {!finished && battle.round === 0 && !battle.dailyDate && (
           <button type="button" className="button button-secondary battle-reroll" onClick={onReroll} disabled={busy}>
             <Icon name="shuffle" size={15} />Sortear outro time
           </button>
@@ -181,7 +181,7 @@ export default function BattleView({ battle, busy, error, onAction, onReroll, on
             ? `Insígnia conquistada em ${battle.round} ${battle.round === 1 ? 'rodada' : 'rodadas'}.`
             : battle.finishReason === 'FORFEIT' ? 'Você desistiu do desafio.' : 'Todos os seus Pokémon desmaiaram.'} A batalha foi salva no histórico.</p>
           <div className="battle-result-actions">
-            <button type="button" className="button button-primary" onClick={onRematch} disabled={busy}><Icon name="refresh" size={16} />Desafiar de novo</button>
+            {!battle.dailyDate && <button type="button" className="button button-primary" onClick={onRematch} disabled={busy}><Icon name="refresh" size={16} />Desafiar de novo</button>}
             <button type="button" className="button button-secondary" onClick={onChooseTrainer} disabled={busy}>Escolher outro treinador</button>
           </div>
         </section>

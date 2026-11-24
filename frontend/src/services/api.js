@@ -63,6 +63,9 @@ export const api = {
 
   // Desafios contra os treinadores
   challengeTrainer: (trainerId, playerName) => request('/battles', { method: 'POST', body: { trainerId, playerName } }),
+  dailyBattle: (signal) => request('/battles/daily', { signal }),
+  challengeDaily: (playerName) => request('/battles', { method: 'POST', body: { playerName, daily: true } }),
+  dailyBattleRanking: (limit = 10, signal) => request(`/battles/daily/ranking?limit=${limit}`, { signal }),
   getBattle: (id) => request(`/battles/${encodeURIComponent(id)}`),
   rerollTeam: (id) => request(`/battles/${encodeURIComponent(id)}/team`, { method: 'POST' }),
   playRound: (id, action, switchTo) => request(`/battles/${encodeURIComponent(id)}/rounds`, { method: 'POST', body: { action, ...(switchTo === undefined ? {} : { switchTo }) } }),
@@ -71,7 +74,9 @@ export const api = {
   battleStats: (signal) => request('/battles/stats', { signal }),
 
   // Minigames
-  saveMinigameScore: (game, playerName, score, rounds) => request('/minigames/scores', { method: 'POST', body: { game, playerName, score, rounds } }),
+  saveMinigameScore: (game, playerName, score, rounds, daily = false) => request('/minigames/scores', { method: 'POST', body: { game, playerName, score, rounds, daily } }),
+  dailyMinigame: (game, signal) => request(`/minigames/daily?game=${game}`, { signal }),
+  dailyMinigameRanking: (game, limit = 10, signal) => request(`/minigames/daily/ranking?game=${game}&limit=${limit}`, { signal }),
   minigameLeaderboard: (game, limit = 8, signal) => request(`/minigames/scores?game=${game}&limit=${limit}`, { signal }),
   minigameStats: (signal) => request('/minigames/stats', { signal }),
 }
