@@ -6,8 +6,8 @@ export const STAT_FIELDS = [
   { key: 'hp', label: 'HP', shortLabel: 'HP' },
   { key: 'attack', label: 'Ataque', shortLabel: 'ATQ' },
   { key: 'defense', label: 'Defesa', shortLabel: 'DEF' },
-  { key: 'specialAttack', label: 'Ataque especial', shortLabel: 'ATQ. ESP.' },
-  { key: 'specialDefense', label: 'Defesa especial', shortLabel: 'DEF. ESP.' },
+  { key: 'specialAttack', label: 'Ataque especial', shortLabel: 'A.ESP' },
+  { key: 'specialDefense', label: 'Defesa especial', shortLabel: 'D.ESP' },
   { key: 'speed', label: 'Velocidade', shortLabel: 'VEL' },
 ];
 

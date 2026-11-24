@@ -5,65 +5,88 @@
 @import './Battles.css';
 @import './Minigames.css';
 
+/* Tema escuro "arcade": fundo quase preto, superfícies em camadas e brilho na cor de cada tipo. */
 :root {
+  color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  color: #222;
-  background: #f2f2f2;
+  --display: 'Chakra Petch', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --accent: #cc2b2b;
-  --accent-light: #fbeaea;
-  --text: #222;
-  --muted: #666;
-  --line: #dcdcdc;
-  --type-typeless: #6a7584;
-  --type-normal: #6a7480;
-  --type-fire: #ca501b;
-  --type-water: #2f78b2;
-  --type-grass: #4a835a;
-  --type-electric: #95720e;
-  --type-ice: #368083;
-  --type-fighting: #bc524a;
-  --type-poison: #955bae;
-  --type-ground: #92713d;
-  --type-flying: #646fae;
-  --type-psychic: #ca3f79;
-  --type-bug: #6f7e3a;
-  --type-rock: #83754e;
-  --type-ghost: #8068a0;
-  --type-dark: #7c7270;
-  --type-dragon: #6968ba;
-  --type-steel: #537a82;
-  --type-fairy: #b4467f;
+
+  --bg: #0b0d13;
+  --surface: #141823;
+  --surface-2: #1b2030;
+  --surface-3: #242a3d;
+  --line: #262c3f;
+  --line-strong: #363e57;
+  --text: #e8ebf4;
+  --muted: #8f98b0;
+  --accent: #ff3e5f;
+  --accent-strong: #ff6b84;
+  --accent-light: #ff3e5f1f;
+  --yellow: #ffd23f;
+  --green: #3ddc84;
+  --success: #3ddc84;
+  --danger: #ff5d6c;
+
+  /* Cores clássicas dos tipos, vivas o bastante para brilhar no fundo escuro */
+  --type-typeless: #8f98b0;
+  --type-normal: #b9b88f;
+  --type-fire: #ff8a3d;
+  --type-water: #5b9dff;
+  --type-grass: #6fd25b;
+  --type-electric: #ffd23f;
+  --type-ice: #7fe3e0;
+  --type-fighting: #e5533f;
+  --type-poison: #c55bd6;
+  --type-ground: #e6c56b;
+  --type-flying: #ab95ff;
+  --type-psychic: #ff5e94;
+  --type-bug: #b5cc2a;
+  --type-rock: #c9b14e;
+  --type-ghost: #8d6fd1;
+  --type-dark: #a4877a;
+  --type-dragon: #8059ff;
+  --type-steel: #b8c2d9;
+  --type-fairy: #ff9ccf;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 320px; background: var(--bg); background-image: radial-gradient(ellipse 80% 50% at 50% -10%, #ff3e5f14, transparent 60%); background-attachment: fixed; }
 button, input, select { font: inherit; }
 button, select { cursor: pointer; }
 button { -webkit-tap-highlight-color: transparent; }
-button, a, input, select { outline-offset: 4px; }
-:focus-visible { outline: 3px solid #3875b9; }
+button, a, input, select { outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--yellow); }
 button { color: inherit; }
 button:disabled { cursor: default; }
 a { color: inherit; }
 img { display: block; max-width: 100%; height: auto; }
 svg { flex-shrink: 0; vertical-align: middle; }
 h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: .01em; }
 button { touch-action: manipulation; }
+::selection { background: #ff3e5f55; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.skip-link { position: fixed; left: 18px; top: -80px; z-index: 20; padding: 10px 16px; background: #fff; border: 2px solid var(--accent); border-radius: 4px; }
+.skip-link { position: fixed; left: 18px; top: -80px; z-index: 20; padding: 10px 16px; background: var(--surface); border: 2px solid var(--accent); border-radius: 8px; }
 .skip-link:focus { top: 12px; }
-.icon-button { display: inline-flex; justify-content: center; align-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #888; }
-.icon-button:hover { color: var(--accent); background: #f2f2f2; }
-.button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border: 1px solid transparent; border-radius: 4px; padding: 8px 14px; font-size: 14px; font-weight: 600; }
-.button-primary { background: var(--accent); color: #fff; }
-.button-primary:hover { background: #a82222; }
-.button-secondary { background: #fff; border-color: #cfd4db; }
-.button-secondary:hover { background: #f2f2f2; }
-.image-fallback { display: flex; align-items: center; justify-content: center; color: #9299a5; aspect-ratio: 1; }
+.icon-button { display: inline-flex; justify-content: center; align-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); transition: background .15s, color .15s; }
+.icon-button:hover { color: var(--text); background: var(--surface-3); }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border: 1px solid transparent; border-radius: 8px; padding: 8px 16px; font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: .02em; transition: background .15s, box-shadow .15s, border-color .15s, transform .1s; }
+.button:active:not(:disabled) { transform: translateY(1px); }
+.button:disabled { opacity: .5; }
+.button-primary { background: var(--accent); color: #fff; box-shadow: 0 0 0 1px #ff3e5f66, 0 6px 20px -6px #ff3e5faa; }
+.button-primary:hover:not(:disabled) { background: var(--accent-strong); box-shadow: 0 0 0 1px var(--accent-strong), 0 8px 26px -6px #ff3e5fcc; }
+.button-secondary { background: var(--surface-2); border-color: var(--line-strong); color: var(--text); }
+.button-secondary:hover:not(:disabled) { background: var(--surface-3); border-color: #4a5372; }
+.image-fallback { display: flex; align-items: center; justify-content: center; color: var(--line-strong); aspect-ratio: 1; }
+
+/* Campos de formulário em todo o site */
+input[type='text'], input[type='search'], input[type='number'], select { color: var(--text); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }

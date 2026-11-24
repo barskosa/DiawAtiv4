@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { filterPokemon, formatId, STAT_FIELDS } from './data/pokedex.js'
+import { filterPokemon, formatId, GENERATIONS, STAT_FIELDS } from './data/pokedex.js'
 import { usePokedex } from './hooks/usePokedex.js'
 import { documentTitle, hashForPage, pageFromHash } from './routes.js'
 import Header from './components/Header.jsx'
@@ -155,8 +155,15 @@ export default function App() {
             <Suspense fallback={<StatusPanel status="loading" />}>
               {!isReady ? <StatusPanel status={status} error={error} onRetry={reload} /> : activePage === 'trainers' ? <Trainers trainers={trainers} pokemon={pokemon} onSelectPokemon={selectPokemon} onChallenge={challengeTrainer} /> : activePage === 'battles' ? <Battles trainers={trainers} pokemon={pokemon} initialTrainerId={challengeTrainerId} /> : activePage === 'minigames' ? <Minigames pokemon={pokemon} types={types} /> : <>
                 <div className="page-heading">
-                  <h1>{isFavoritesPage ? 'Favoritos' : 'Pokédex'}</h1>
-                  <p>{isFavoritesPage ? 'Pokémon marcados com a estrela.' : `${pokemon.length} Pokémon de 9 gerações, de Kanto a Paldea.`}</p>
+                  <div>
+                    <h1>{isFavoritesPage ? 'Favoritos' : 'Pokédex'}</h1>
+                    <p>{isFavoritesPage ? 'Pokémon marcados com a estrela.' : 'De Kanto a Paldea: busque, filtre e abra qualquer Pokémon.'}</p>
+                  </div>
+                  <ul className="page-stats">
+                    <li><strong>{isFavoritesPage ? favorites.length : pokemon.length}</strong><span>Pokémon</span></li>
+                    {!isFavoritesPage && <li><strong>{GENERATIONS.length}</strong><span>Gerações</span></li>}
+                    {!isFavoritesPage && <li><strong>{types.filter((type) => type.name !== 'Typeless').length}</strong><span>Tipos</span></li>}
+                  </ul>
                 </div>
                 <SearchBar types={types} query={query} onQueryChange={setQuery} generation={generation} onGenerationChange={setGeneration} selectedTypes={selectedTypes} onToggleType={toggleType} onClearTypes={() => setSelectedTypes([])} hasFilters={hasFilters} onReset={resetFilters} />
                 <div className="results-toolbar">

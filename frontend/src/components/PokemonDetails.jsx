@@ -73,7 +73,7 @@ export default function PokemonDetails({ pokemon, allPokemon, trainers, onClose,
       </button>
 
       <div className="detail-layout">
-        <div className="detail-art">
+        <div className="detail-art" data-number={String(pokemon.id).padStart(3, '0')}>
           <PokemonImage pokemon={pokemon} loading="eager" />
         </div>
 

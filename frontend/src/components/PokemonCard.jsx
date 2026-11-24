@@ -3,6 +3,9 @@ import PokemonImage from './PokemonImage.jsx'
 import TypeBadge from './TypeBadge.jsx'
 import Icon from './Icon.jsx'
 
+// Escala das barrinhas do cartão: 160 já é um atributo muito alto; valores maiores enchem a barra.
+const BAR_SCALE = 160
+
 export default function PokemonCard({ pokemon, onSelect, isFavorite, onToggleFavorite }) {
   const displayedTypes = pokemon.types.length ? pokemon.types : [{ id: 0, name: 'Typeless' }]
   const primaryType = displayedTypes[0].name.toLowerCase()
@@ -14,11 +17,18 @@ export default function PokemonCard({ pokemon, onSelect, isFavorite, onToggleFav
         <button type="button" className={`icon-button favorite-button ${isFavorite ? 'is-favorite' : ''}`} onClick={() => onToggleFavorite(pokemon.id)} aria-label={`${isFavorite ? 'Remover' : 'Adicionar'} ${pokemon.name} ${isFavorite ? 'dos' : 'aos'} favoritos`} aria-pressed={isFavorite} title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}><Icon name="star" size={18} /></button>
       </div>
       <button type="button" className="pokemon-card-open" onClick={() => onSelect(pokemon)} aria-label={`Ver detalhes de ${pokemon.name}`}>
+        <span className="card-watermark" aria-hidden="true">{String(pokemon.id).padStart(3, '0')}</span>
         <span className="pokemon-art"><PokemonImage pokemon={pokemon} /></span>
         <span className="pokemon-name">{pokemon.name}</span>
         <span className="type-badges">{displayedTypes.map((type) => <TypeBadge key={type.id} type={type} />)}</span>
         <span className="card-stats">
-          {STAT_FIELDS.map(({ key, shortLabel, label }) => <span className="card-stat" key={key}><abbr title={label}>{shortLabel}</abbr><span>{pokemon.stats[key]}</span></span>)}
+          {STAT_FIELDS.map(({ key, shortLabel, label }) => (
+            <span className="card-stat" key={key}>
+              <abbr title={label}>{shortLabel}</abbr>
+              <span className="card-stat-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, (pokemon.stats[key] / BAR_SCALE) * 100)}%` }} /></span>
+              <span className="card-stat-value">{pokemon.stats[key]}</span>
+            </span>
+          ))}
         </span>
       </button>
     </article>

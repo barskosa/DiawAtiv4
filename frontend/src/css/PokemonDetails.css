@@ -1,89 +1,90 @@
-.pokemon-dialog { position: fixed; padding: 0; width: min(800px, calc(100% - 40px)); max-height: calc(100dvh - 48px); border: 0; border-radius: 6px; color: var(--text); background: #fff; box-shadow: 0 8px 30px #0004; }
-.pokemon-dialog::backdrop { background: #0008; }
-.pokemon-dialog[open] { animation: dialog-in .15s ease-out; }
-@keyframes dialog-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-.dialog-close { position: absolute; right: 12px; top: 12px; color: #666; z-index: 2; }
-.detail-layout { display: grid; grid-template-columns: .85fr 1fr; }
-.detail-art { display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; min-width: 0; padding: 40px 28px; background: #f2f2f2; }
-.detail-art img, .detail-art .image-fallback { width: 100%; max-width: 280px; object-fit: contain; }
-.detail-content { padding: 40px 28px 24px; }
-.detail-content .type-badges { justify-content: flex-start; margin-bottom: 11px; }
-.detail-content .type-badge { font-size: 13px; padding: 4px 10px; }
-.detail-title { font-size: 28px; margin-bottom: 16px; line-height: 1.2; }
-.detail-number { color: #888; font-weight: 400; font-size: 20px; font-variant-numeric: tabular-nums; }
-.detail-description { color: #9aa1ab; font-size: 11px; line-height: 1.9; margin-bottom: 23px; }
-.detail-stats-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
-.detail-content h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.pokemon-dialog { position: fixed; padding: 0; width: min(840px, calc(100% - 40px)); max-height: calc(100dvh - 48px); border: 1px solid var(--line-strong); border-radius: 20px; color: var(--text); background: var(--surface); box-shadow: 0 30px 80px #000c, 0 0 0 1px #ffffff08; }
+.pokemon-dialog::backdrop { background: #05060acc; backdrop-filter: blur(6px); }
+.pokemon-dialog[open] { animation: dialog-in .18s ease-out; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.dialog-close { position: absolute; right: 14px; top: 14px; z-index: 2; }
+
+/* Detalhes: ilustração sobre um brilho na cor do tipo */
+.detail-layout { display: grid; grid-template-columns: .9fr 1fr; }
+.detail-art { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; padding: 40px 28px; overflow: hidden; background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--type-color) 30%, transparent), transparent 62%), var(--bg); }
+.detail-art::before { content: attr(data-number); position: absolute; left: 18px; top: 14px; font-family: var(--display); font-size: 64px; font-weight: 700; color: var(--type-color); opacity: .14; }
+.detail-art img, .detail-art .image-fallback { position: relative; width: 100%; max-width: 290px; object-fit: contain; filter: drop-shadow(0 18px 18px #000a); }
+.detail-content { padding: 40px 30px 26px; }
+.detail-content .type-badges { justify-content: flex-start; margin-bottom: 10px; }
+.detail-content .type-badge { font-size: 13px; padding: 4px 12px; }
+.detail-title { font-size: 34px; margin-bottom: 18px; line-height: 1.1; text-transform: uppercase; letter-spacing: .03em; }
+.detail-number { color: color-mix(in srgb, var(--type-color) 80%, white); font-size: 22px; font-variant-numeric: tabular-nums; }
+.detail-stats-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.detail-content h3 { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 .detail-stats-heading > span { font-size: 13px; color: var(--muted); }
-.detail-stats-heading strong { margin-left: 4px; color: var(--text); }
-.stat-list { display: flex; flex-direction: column; gap: 6px; }
-.stat-row { display: grid; grid-template-columns: 120px 32px 1fr; gap: 8px; align-items: center; }
-.stat-label { font-size: 13px; color: #555; }
-.stat-value { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-.stat-track { height: 8px; background: #e6e6e6; }
-.stat-fill { height: 100%; background: var(--type-color); }
-.detail-trainers { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px; margin-bottom: 18px; }
-.detail-trainers h3 { margin-bottom: 8px; }
+.detail-stats-heading strong { margin-left: 6px; font-family: var(--display); font-size: 20px; color: var(--text); }
+.stat-list { display: flex; flex-direction: column; gap: 8px; }
+.stat-row { display: grid; grid-template-columns: 120px 34px 1fr; gap: 10px; align-items: center; }
+.stat-label { font-size: 13px; color: var(--muted); }
+.stat-value { font-family: var(--display); font-size: 15px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.stat-track { height: 8px; border-radius: 8px; background: var(--surface-3); overflow: hidden; }
+.stat-fill { height: 100%; border-radius: inherit; background: var(--type-color); box-shadow: 0 0 10px var(--type-color); transition: width .4s ease; }
+.detail-trainers { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 20px; margin-bottom: 20px; }
+.detail-trainers h3 { margin-bottom: 10px; }
 .detail-trainers p { color: var(--muted); font-size: 13px; }
 .trainer-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.trainer-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
-.trainer-chip svg { display: none; }
+.trainer-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface-2); font-size: 13px; }
+.trainer-chip svg { color: var(--muted); }
 
-
-.detail-footer { display: flex; justify-content: space-between; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); }
-.detail-footer .button { gap: 10px; text-align: left; font-size: 14px; border: 0; background: transparent; padding: 4px 6px; }
-.detail-footer .button:hover { color: var(--accent); }
+.detail-footer { display: flex; justify-content: space-between; gap: 16px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--bg); }
+.detail-footer .button { gap: 12px; text-align: left; font-size: 15px; border: 0; background: transparent; box-shadow: none; padding: 4px 6px; }
+.detail-footer .button:hover:not(:disabled) { color: var(--accent); background: transparent; }
 .detail-footer .button:last-child { text-align: right; }
-.detail-nav-label { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.detail-nav-label { display: block; font-family: system-ui, sans-serif; font-weight: 400; color: var(--muted); font-size: 12px; letter-spacing: 0; }
 
-@media (max-width: 640px) {
-  .pokemon-dialog { width: calc(100% - 24px); max-height: calc(100dvh - 24px); }
+@media (max-width: 680px) {
+  .pokemon-dialog { width: calc(100% - 20px); max-height: calc(100dvh - 20px); border-radius: 16px; }
   .detail-layout { grid-template-columns: 1fr; }
-  .detail-art { height: 220px; padding: 24px; }
+  .detail-art { height: 230px; padding: 24px; }
   .detail-art img, .detail-art .image-fallback { width: 190px; height: 190px; }
-  .detail-content { padding: 24px 23px; }
-  .detail-title { font-size: 24px; }
-  .detail-description { margin-bottom: 18px; }
-  .detail-footer { gap: 8px; padding: 12px 18px; }
-  .detail-footer .button { min-width: 0; gap: 8px; font-size: 13px; }
+  .detail-content { padding: 22px 20px; }
+  .detail-title { font-size: 27px; }
+  .stat-row { grid-template-columns: 112px 30px 1fr; }
+  .detail-footer { gap: 8px; padding: 10px 12px; }
+  .detail-footer .button { min-width: 0; gap: 8px; font-size: 14px; }
 }
 
 /* Ações do detalhe: favoritar, editar e excluir */
 .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.detail-actions .button { flex: 1 1 auto; font-size: 14px; }
+.detail-actions .button { flex: 1 1 auto; }
 .detail-actions .favorite-button { flex-basis: 100%; }
-.detail-actions .favorite-button.is-favorite { background: #fff; border-color: #cfd4db; color: #8a6d00; }
-.button.button-danger { background: #fff; border-color: #e0b4b4; color: #b02020; }
-.button.button-danger:hover { background: #fbeaea; }
+.detail-actions .favorite-button.is-favorite { background: #ffd23f1a; border-color: #ffd23f66; color: var(--yellow); box-shadow: none; }
+.detail-actions .favorite-button.is-favorite svg { fill: currentColor; }
+.button.button-danger { background: transparent; border-color: #ff5d6c55; color: var(--danger); }
+.button.button-danger:hover:not(:disabled) { background: #ff5d6c1a; border-color: var(--danger); }
 
-/* Formulário de cadastro e edição */
+/* Formulários (cadastro/edição e nomes de jogador) */
 .form-dialog { width: min(720px, calc(100% - 40px)); }
-.pokemon-form { padding: 28px 28px 0; }
-.form-header { margin-bottom: 20px; padding-right: 40px; }
-.form-header h2 { font-size: 22px; margin-bottom: 4px; }
+.pokemon-form { padding: 30px 30px 0; }
+.form-header { margin-bottom: 22px; padding-right: 40px; }
+.form-header h2 { font-size: 26px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
 .form-header p { color: var(--muted); font-size: 13px; margin: 0; }
-.form-alert { padding: 10px 12px; margin-bottom: 16px; border-radius: 4px; background: var(--accent-light); color: #a3372c; font-size: 12px; }
+.form-alert { padding: 10px 14px; margin-bottom: 16px; border: 1px solid #ff5d6c55; border-radius: 10px; background: #ff5d6c14; color: #ff9aa4; font-size: 13px; }
 .form-grid { display: grid; grid-template-columns: 170px 1fr; gap: 14px; margin-bottom: 18px; }
-.form-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 13px; color: #444; }
-.form-field input { height: 38px; padding: 0 10px; border: 1px solid #cfd4db; border-radius: 4px; background: #fff; color: var(--text); font-size: 14px; }
-.form-field input:focus { outline: none; border-color: var(--accent); }
-.form-field input:disabled { color: #8b93a0; background: #f1f2f4; }
-.form-field input[aria-invalid='true'] { border-color: #d9796d; background: #fff8f6; }
-.field-error { color: #b02020; font-size: 12px; line-height: 1.4; }
+.form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 13px; color: var(--muted); }
+.form-field input { height: 42px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 15px; transition: border-color .15s, box-shadow .15s; }
+.form-field input::placeholder { color: #5d6683; }
+.form-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #ff3e5f33; }
+.form-field input:disabled { color: var(--muted); background: var(--surface-2); }
+.form-field input[aria-invalid='true'] { border-color: var(--danger); background: #ff5d6c0f; }
+.field-error { color: #ff9aa4; font-size: 12px; line-height: 1.4; }
 .form-fieldset { margin: 0 0 18px; padding: 0; border: 0; min-width: 0; }
-.form-fieldset legend { margin-bottom: 8px; padding: 0; font-size: 15px; font-weight: 600; }
-.form-fieldset legend small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.form-fieldset legend { margin-bottom: 10px; padding: 0; font-family: var(--display); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text); }
+.form-fieldset legend small { font-family: system-ui, sans-serif; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); font-size: 12px; }
 .form-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 14px; }
 .form-types { margin-bottom: 6px; }
-.form-actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 10px; margin: 0 -28px; padding: 12px 28px; background: #fff; border-top: 1px solid var(--line); }
+.form-actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 10px; margin: 0 -30px; padding: 14px 30px; background: var(--surface); border-top: 1px solid var(--line); }
 
 /* Aviso temporário */
 .toast-region { position: fixed; right: 24px; bottom: 24px; z-index: 30; }
-.toast { display: flex; align-items: center; gap: 10px; max-width: min(420px, calc(100vw - 32px)); padding: 8px 8px 8px 14px; border-radius: 4px; background: #333; color: #fff; font-size: 14px; box-shadow: 0 4px 12px #0003; animation: dialog-in .2s ease-out; }
-.toast .icon-button { width: 28px; height: 28px; color: #c9d0da; }
-.toast .icon-button:hover { background: #444; color: #fff; }
+.toast { display: flex; align-items: center; gap: 10px; max-width: min(420px, calc(100vw - 32px)); padding: 10px 10px 10px 16px; border: 1px solid var(--line-strong); border-left: 3px solid var(--green); border-radius: 12px; background: var(--surface-2); color: var(--text); font-size: 14px; box-shadow: 0 16px 40px #000a; animation: dialog-in .2s ease-out; }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .pokemon-form { padding: 24px 20px 0; }
   .form-header h2 { font-size: 22px; }
   .form-grid { grid-template-columns: 1fr; }
@@ -95,12 +96,12 @@
 
 /* Confirmação de exclusão */
 .confirm-dialog { width: min(440px, calc(100% - 32px)); }
-.confirm-body { padding: 32px 30px 20px; text-align: center; }
-.confirm-icon { display: inline-flex; margin-bottom: 10px; color: var(--accent); }
-.confirm-body h2 { font-size: 20px; margin-bottom: 8px; }
-.confirm-body p { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 0; }
+.confirm-body { padding: 34px 30px 20px; text-align: center; }
+.confirm-icon { display: inline-flex; margin-bottom: 12px; color: var(--danger); filter: drop-shadow(0 0 10px #ff5d6c88); }
+.confirm-body h2 { font-size: 22px; margin-bottom: 8px; }
+.confirm-body p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 0; }
 .confirm-body .form-alert { margin: 14px 0 0; text-align: left; }
 .confirm-actions { position: static; margin: 0; padding: 16px 24px; }
 .confirm-actions .button { flex: 1; }
-.button.button-delete { background: #b02020; }
-.button.button-delete:hover { background: #8f1a1a; }
+.button.button-delete { background: var(--danger); color: #fff; box-shadow: 0 6px 20px -6px #ff5d6caa; }
+.button.button-delete:hover:not(:disabled) { background: #ff7884; }
