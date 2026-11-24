@@ -347,19 +347,19 @@ curl -X DELETE http://localhost:8080/api/pokemons/152
 
 Mantidas da Atividade 03, agora com dados vindos da API:
 
-- 🔎 **Pesquisa** por parte do nome ou pelo número (`25`, `025` ou `#025`).
-- 🧬 **Filtro por tipo**: até dois tipos, e o Pokémon precisa ter ambos. **Sem tipo** encontra o Mew.
-- 📄 **Detalhes** do Pokémon com navegação para o anterior e o próximo e os treinadores que o possuem.
-- 📊 **Atributos**: os seis atributos base nos cards e em barras nos detalhes, com total.
-- ⭐ Favoritos salvos no navegador, ordenação por número, nome ou atributo, Pokémon aleatório e página de treinadores com insígnias e equipes.
+- **Pesquisa** por parte do nome ou pelo número (`25`, `025` ou `#025`).
+- **Filtro por tipo**: até dois tipos, e o Pokémon precisa ter ambos. **Sem tipo** encontra o Mew.
+- **Detalhes** do Pokémon com navegação para o anterior e o próximo e os treinadores que o possuem.
+- **Atributos**: os seis atributos base nos cards e em barras nos detalhes, com total.
+- Favoritos salvos no navegador, ordenação por número, nome ou atributo, Pokémon aleatório e página de treinadores com insígnias e equipes.
 
 Novas nesta atividade:
 
-- 🔗 **Endereço de cada página na URL**: `#/`, `#/favoritos`, `#/treinadores`, `#/batalhas` e `#/minigames`. Recarregar mantém a página, os botões voltar e avançar do navegador funcionam e dá para compartilhar um link direto.
+- **Endereço de cada página na URL**: `#/`, `#/favoritos`, `#/treinadores`, `#/batalhas` e `#/minigames`. Recarregar mantém a página, os botões voltar e avançar do navegador funcionam e dá para compartilhar um link direto.
 
-- ➕ **Cadastrar**: botão **Novo Pokémon** na barra de resultados.
-- ✏️ **Editar**: botão **Editar** nos detalhes. O número da Pokédex fica bloqueado.
-- 🗑️ **Excluir**: botão **Excluir** nos detalhes, com confirmação que avisa de quais equipes o Pokémon vai sair.
+- **Cadastrar**: botão **Novo Pokémon** na barra de resultados.
+- **Editar**: botão **Editar** nos detalhes. O número da Pokédex fica bloqueado.
+- **Excluir**: botão **Excluir** nos detalhes, com confirmação que avisa de quais equipes o Pokémon vai sair.
 - O formulário valida os dados no navegador com as mesmas regras da API e também mostra os erros devolvidos pelo backend (ex.: nome repetido).
 - Avisos de confirmação após cada operação, estado de carregamento e tela de erro quando a API não responde.
 
