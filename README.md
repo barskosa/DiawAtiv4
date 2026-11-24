@@ -524,12 +524,7 @@ Pokémon e seus personagens pertencem aos respectivos titulares. Este projeto fo
 
 ## Entrega
 
-A atividade é feita em dupla com **Pair Programming**, e os dois integrantes participam ativamente.
-
-| Integrante | Contribuições |
-| --- | --- |
-| Álvaro Barbosa | _Preencher_ |
-| _Nome do integrante 2_ | _Preencher_ |
+Atividade realizada individualmente por **Álvaro Barbosa**.
 
 - [x] Backend Spring Boot (Controller, Service, Repository, Model) com MongoDB.
 - [x] `Script_Pokedex.sql` como fonte dos dados do MongoDB.
@@ -541,7 +536,6 @@ A atividade é feita em dupla com **Pair Programming**, e os dois integrantes pa
 - [x] Extra: batalhas contra os treinadores (time sorteado do mesmo tamanho), com regras no backend e estatísticas por agregação.
 - [x] Extra: minigames (tipo, número da Pokédex e maior atributo) com ranking salvo no MongoDB.
 - [x] Execução com um comando via Docker (`docker compose up -d --build`).
-- [ ] Preencher o integrante 2 e as contribuições reais de cada um.
 - [ ] Configurar o MongoDB Atlas e testar a aplicação com ele.
 - [x] Publicar o repositório no GitHub.
-- [ ] **Cada um dos dois integrantes** entregar no Canvas o link do repositório.
+- [ ] Entregar no Canvas o link do repositório.
