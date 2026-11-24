@@ -122,6 +122,18 @@ Content-Type: application/json
 ### Desistir
 POST {{baseUrl}}/api/battles/{{battleId}}/forfeit
 
+### Desafio do dia: treinador e time iguais para todos
+GET {{baseUrl}}/api/battles/daily
+
+### Aceitar o desafio do dia
+POST {{baseUrl}}/api/battles
+Content-Type: application/json
+
+{"playerName": "Ana", "daily": true}
+
+### Ranking do dia das batalhas (menos rodadas, depois mais HP)
+GET {{baseUrl}}/api/battles/daily/ranking
+
 ### Histórico e estatísticas por treinador
 GET {{baseUrl}}/api/battles
 
@@ -139,3 +151,21 @@ GET {{baseUrl}}/api/minigames/scores?game=NUMBER&limit=10
 
 ### Estatísticas dos minigames
 GET {{baseUrl}}/api/minigames/stats
+
+### Minigames: os 5 Pokémon do desafio do dia
+GET {{baseUrl}}/api/minigames/daily?game=TYPE
+
+### Salvar o placar do desafio do dia
+POST {{baseUrl}}/api/minigames/scores
+Content-Type: application/json
+
+{"game": "TYPE", "playerName": "Ana", "score": 350, "rounds": 5, "daily": true}
+
+### Ranking do dia de um minigame
+GET {{baseUrl}}/api/minigames/daily/ranking?game=TYPE
+
+### Pokémon das outras gerações: Pecharunt (#1025) e o tipo Fada
+GET {{baseUrl}}/api/pokemons/1025
+
+###
+GET {{baseUrl}}/api/pokemons?type=Fairy

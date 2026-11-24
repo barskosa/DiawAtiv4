@@ -2,10 +2,11 @@
 
 [![CI](https://github.com/barskosa/DiawAtiv4/actions/workflows/ci.yml/badge.svg)](https://github.com/barskosa/DiawAtiv4/actions/workflows/ci.yml)
 
-Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extras, há **batalhas contra os treinadores** do script (com um time sorteado do mesmo tamanho da equipe deles) e uma página de **minigames**, com regras e placares na API e no MongoDB.
+Continuação da **Atividade 03 (Pokédex com React + Vite)**. O arquivo `pokedex-data.json` foi substituído por uma **API REST em Spring Boot** com **MongoDB**, populado a partir do [`Script_Pokedex.sql`](Script_Pokedex.sql) da atividade. Como extras, há **batalhas contra os treinadores** do script (com um time sorteado do mesmo tamanho da equipe deles) e uma página de **minigames**, com regras e placares na API e no MongoDB. Também foram acrescentados os **Pokémon da 2ª à 9ª geração** (1025 no total), num segundo script no mesmo formato, e **desafios diários com ranking**.
 
 ```text
-Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► React + Vite
+Script_Pokedex.sql ─────────┐
+Script_Pokedex_Geracoes.sql ┴► MongoDB ──► Spring Boot REST API ──► React + Vite
    (importado na        (pokemons,      (/api/pokemons,        (interface da
     inicialização)       types,          /api/types,            Atividade 03 +
                          trainers,       /api/trainers,         cadastro/edição/exclusão
@@ -21,11 +22,11 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 | --- | --- |
 | ![Detalhes do Charizard](docs/pokedex-detalhes.png) | ![Formulário de edição](docs/pokedex-formulario.png) |
 
-| Batalhas: escolha do treinador | Batalhas: desafio em andamento |
+| Batalhas: desafio do dia e treinadores | Batalhas: desafio em andamento |
 | --- | --- |
 | ![Escolha do treinador](docs/batalhas-treinadores.png) | ![Batalha contra a Misty](docs/batalhas-desafio.png) |
 
-![Minigame do maior atributo](docs/minigames.png)
+![Desafio do dia do minigame do maior atributo](docs/minigames.png)
 
 [Ver a interface no celular](docs/pokedex-mobile.png).
 
@@ -43,12 +44,14 @@ Script_Pokedex.sql ──► MongoDB ──► Spring Boot REST API ──► Re
 8. [Modelagem: do SQL para documentos](#modelagem-do-sql-para-documentos)
 9. [API REST](#api-rest)
 10. [Funcionalidades da interface](#funcionalidades-da-interface)
-11. [Batalhas contra os treinadores (extra)](#batalhas-contra-os-treinadores-extra)
-12. [Minigames (extra)](#minigames-extra)
-13. [Testes](#testes)
-14. [Variáveis de ambiente](#variáveis-de-ambiente)
-15. [Solução de problemas](#solução-de-problemas)
-16. [Entrega](#entrega)
+11. [Gerações 2 a 9 (extra)](#gerações-2-a-9-extra)
+12. [Batalhas contra os treinadores (extra)](#batalhas-contra-os-treinadores-extra)
+13. [Minigames (extra)](#minigames-extra)
+14. [Desafios do dia (extra)](#desafios-do-dia-extra)
+15. [Testes](#testes)
+16. [Variáveis de ambiente](#variáveis-de-ambiente)
+17. [Solução de problemas](#solução-de-problemas)
+18. [Entrega](#entrega)
 
 ## Tecnologias
 
@@ -70,7 +73,8 @@ controller/  →  service/  →  repository/  →  model/
 
 ```text
 .
-├── Script_Pokedex.sql          # Fonte dos dados (fornecido na atividade)
+├── Script_Pokedex.sql          # Fonte dos dados (fornecido na atividade): 1ª geração e treinadores
+├── Script_Pokedex_Geracoes.sql # Pokémon #152 a #1025 no mesmo formato (extra)
 ├── .github/workflows/ci.yml    # CI: testes do backend e do frontend e build das imagens a cada push
 ├── docker-compose.yml          # MongoDB + API + site com um comando
 ├── .env.example                # Modelo para usar o Atlas com o docker compose
@@ -82,13 +86,13 @@ controller/  →  service/  →  repository/  →  model/
 │   ├── http/                   # Coleção do Postman/Insomnia e arquivo .http
 │   └── src/main/java/com/pokedex/api/
 │       ├── controller/         # PokemonController, PokemonTypeController, TrainerController
-│       ├── service/            # PokemonService, PokemonTypeService, TrainerService
+│       ├── service/            # PokemonService, TrainerService, MinigameService, DailyChallengeService…
 │       │   └── battle/         # Batalhas: BattleService, BattleEngine (regras), TrainerAi, TypeChart
 │       ├── repository/         # Repositórios Spring Data + consultas com MongoTemplate
 │       ├── model/              # Pokemon, PokemonType, Trainer, Battle, MinigameScore (@Document)
 │       ├── dto/                # PokemonRequest (corpo validado do POST/PUT)
 │       ├── exception/          # Erros em Problem Details (RFC 9457), em português
-│       ├── seed/               # Leitura do Script_Pokedex.sql e importação
+│       ├── seed/               # Leitura dos scripts SQL e importação
 │       └── config/             # CORS, MongoDB (índices), OpenAPI e propriedades da aplicação
 └── frontend/                   # Pokédex da Atividade 03 integrada à API
     ├── src/routes.js           # Endereço de cada página na URL (#/batalhas, #/minigames…)
@@ -158,7 +162,10 @@ Não é preciso rodar nenhum script manualmente. Ao iniciar, o backend lê o `Sc
 
 ```text
 Script_Pokedex.sql importado: 151 Pokémon, 18 tipos, 12 treinadores
+Script_Pokedex_Geracoes.sql importado: 874 Pokémon (2ª à 9ª geração), 1 tipo novo
 ```
+
+O segundo script é importado **uma única vez** (fica registrado na coleção `seed_history`), para que um Pokémon excluído pela interface não volte na próxima inicialização. Para usar só a 1ª geração do script da atividade, inicie com `POKEDEX_SEED_GENERATIONS=false`.
 
 Por padrão (`POKEDEX_SEED_MODE=if-empty`), cada coleção só é importada se estiver vazia: cadastros, edições e exclusões feitos pela aplicação **continuam salvos** entre reinicializações. Para restaurar os dados originais do script, inicie uma vez com `POKEDEX_SEED_MODE=always`:
 
@@ -356,6 +363,8 @@ Mantidas da Atividade 03, agora com dados vindos da API:
 Novas nesta atividade:
 
 - **Endereço de cada página na URL**: `#/`, `#/favoritos`, `#/treinadores`, `#/batalhas` e `#/minigames`. Recarregar mantém a página, os botões voltar e avançar do navegador funcionam e dá para compartilhar um link direto.
+- **Filtro por geração** (1ª a 9ª) e lista carregada em lotes, para os 1025 Pokémon.
+- **Tema escuro estilo arcade**: cartões com o número da Pokédex ao fundo, brilho na cor do tipo e barrinhas de atributo; títulos com a fonte Chakra Petch, instalada pelo npm (`@fontsource/chakra-petch`), sem depender de serviço externo.
 
 - **Cadastrar**: botão **Novo Pokémon** na barra de resultados.
 - **Editar**: botão **Editar** nos detalhes. O número da Pokédex fica bloqueado.
@@ -363,7 +372,18 @@ Novas nesta atividade:
 - O formulário valida os dados no navegador com as mesmas regras da API e também mostra os erros devolvidos pelo backend (ex.: nome repetido).
 - Avisos de confirmação após cada operação, estado de carregamento e tela de erro quando a API não responde.
 
-Pokémon cadastrados com número acima de 151 não têm ilustração local e aparecem com o ícone de Pokébola.
+Pokémon cadastrados pela interface com número acima de 1025 não têm ilustração e aparecem com o ícone de Pokébola.
+
+## Gerações 2 a 9 (extra)
+
+O `Script_Pokedex.sql` da atividade traz só a 1ª geração. Para ter a Pokédex completa (**1025 Pokémon, de Kanto a Paldea**), o repositório inclui o `Script_Pokedex_Geracoes.sql`, **no mesmo formato** do script da atividade: as tabelas `Pokemon`, `Rel_Pokemon_Type` e `Types`, com as mesmas colunas e os mesmos IDs de tipo, mais o tipo **Fada** (`18, 'Fairy'`), que surgiu na 6ª geração.
+
+O script foi gerado a partir das tabelas públicas da [PokeAPI](https://github.com/PokeAPI/pokeapi/tree/master/data/v2/csv) (`pokemon`, `pokemon_stats`, `pokemon_types` e `types`), que têm a mesma estrutura relacional do script da atividade. Por isso o importador é o mesmo: ele lê os dois arquivos e só trata as tabelas de treinadores como opcionais.
+
+- A 1ª geração continua vindo **só** do `Script_Pokedex.sql` (com as peculiaridades dele, como o Mew sem tipo).
+- Na interface há um filtro por **geração** (1ª Kanto … 9ª Paldea), e a lista carrega os cartões em lotes de 60 conforme a página desce.
+- As ilustrações da 1ª geração ficam no projeto (`frontend/public/images`); as das outras gerações vêm do repositório público da PokeAPI, para não acrescentar ~150 MB de imagens.
+- As batalhas consideram o tipo Fada na tabela de efetividade (Dragão não o atinge; Aço e Veneno são super efetivos).
 
 ## Batalhas contra os treinadores (extra)
 
@@ -391,8 +411,10 @@ No menu **Batalhas**, o jogador escolhe um dos 12 treinadores do `Script_Pokedex
 
 | Método | Endpoint | Descrição | Respostas |
 | --- | --- | --- | --- |
-| `POST` | `/api/battles` | Desafia um treinador: `{"trainerId":2,"playerName":"Ana"}` | 201, 400, 404 |
-| `POST` | `/api/battles/{id}/team` | Sorteia outro time (só antes da 1ª rodada) | 200, 404, 409 |
+| `POST` | `/api/battles` | Desafia um treinador: `{"trainerId":2,"playerName":"Ana"}`. Desafio do dia: `{"playerName":"Ana","daily":true}` | 201, 400, 404 |
+| `GET` | `/api/battles/daily` | Treinador e time do desafio do dia (iguais para todos) | 200 |
+| `GET` | `/api/battles/daily/ranking?date=2026-11-24` | Ranking do dia (data opcional; padrão: hoje) | 200 |
+| `POST` | `/api/battles/{id}/team` | Sorteia outro time (só antes da 1ª rodada e fora do desafio do dia) | 200, 404, 409 |
 | `POST` | `/api/battles/{id}/rounds` | Joga uma rodada: `{"action":"SPECIAL"}` ou `{"action":"SWITCH","switchTo":2}` | 200, 400, 404, 409 |
 | `POST` | `/api/battles/{id}/forfeit` | Desiste do desafio | 200, 404, 409 |
 | `GET` | `/api/battles/{id}` | Estado da batalha, com os dois times e o registro de cada rodada | 200, 404 |
@@ -436,39 +458,52 @@ No fim da partida, o placar é enviado à API e salvo na coleção `minigame_sco
 
 | Método | Endpoint | Descrição | Respostas |
 | --- | --- | --- | --- |
-| `POST` | `/api/minigames/scores` | Salva uma partida: `{"game":"NUMBER","playerName":"Ana","score":420,"rounds":5}` | 201, 400 |
+| `POST` | `/api/minigames/scores` | Salva uma partida: `{"game":"NUMBER","playerName":"Ana","score":420,"rounds":5}`. Desafio do dia: acrescente `"daily":true` | 201, 400 |
+| `GET` | `/api/minigames/daily?game=TYPE` | Os 5 Pokémon do desafio do dia, na ordem das rodadas | 200, 400 |
+| `GET` | `/api/minigames/daily/ranking?game=TYPE&date=2026-11-24` | Ranking do dia (melhor partida de cada jogador) | 200, 400 |
 | `GET` | `/api/minigames/scores?game=TYPE&limit=10` | Ranking de um jogo (`TYPE`, `NUMBER` ou `STAT`) | 200, 400 |
 | `GET` | `/api/minigames/stats` | Partidas, recorde, média e aproveitamento de cada jogo | 200 |
 
 A API valida o jogo, as rodadas (1 a 20) e a pontuação (0 a 100 por rodada).
 
+## Desafios do dia (extra)
+
+Os minigames e as batalhas têm um **desafio do dia**, igual para todos os jogadores, com um **ranking diário** que recomeça à meia-noite (horário de Brasília).
+
+- **Como o conteúdo é igual para todos:** o `DailyChallengeService` usa a **data como semente** de um `java.util.Random` (mais o nome do desafio) e embaralha a lista de Pokémon ordenada por número. A mesma data produz sempre o mesmo resultado, em qualquer servidor, sem precisar guardar nada no banco.
+- **Minigames:** cada um dos três jogos tem 5 Pokémon do dia (`GET /api/minigames/daily`). A partida é salva com `dailyDate` e entra no ranking do dia, que guarda **a melhor pontuação de cada jogador** (pipeline `$match` → `$sort` → `$group` → `$sort`). O treino livre continua sorteando Pokémon a cada partida.
+- **Batalhas:** um treinador do dia (entre os 12 do script) e um time do dia do mesmo tamanho da equipe dele (`GET /api/battles/daily`). No desafio do dia não dá para sortear outro time. O ranking ordena as vitórias por **menos rodadas** e, no empate, **mais HP sobrando** no time.
+- **Uma tentativa por dia:** a interface guarda no navegador que o desafio de hoje já foi jogado e mostra o resultado no lugar do botão.
+
 ## Testes
 
-### Backend: 54 testes
+### Backend: 63 testes
 
 ```bash
 cd backend
 ./mvnw test                     # Windows: .\mvnw.cmd test
 ```
 
-- `SqlScriptParserTest` e `PokedexSqlImporterTest`: leitura do `Script_Pokedex.sql` real (151 Pokémon, 18 tipos, 12 treinadores, 214 relações de tipo, 43 de equipe; Pikachu igual ao exemplo do enunciado).
+- `SqlScriptParserTest` e `PokedexSqlImporterTest`: leitura do `Script_Pokedex.sql` real (151 Pokémon, 18 tipos, 12 treinadores, 214 relações de tipo, 43 de equipe; Pikachu igual ao exemplo do enunciado) e do `Script_Pokedex_Geracoes.sql` (874 Pokémon, tipo Fada, sem treinadores).
 - `PokemonControllerTest`: contrato HTTP dos cinco endpoints (status, JSON, validação, Problem Details).
 - `PokedexApiIntegrationTest`: aplicação completa com um **MongoDB real** em container (Testcontainers), percorrendo o CRUD, as buscas e a atualização das equipes.
 - `BattleEngineTest`: regras das batalhas e decisões do treinador com aleatoriedade controlada. Os danos esperados foram calculados à mão pela fórmula, e o teste cobre também tabela de tipos, ordem, defesa, troca, substituição ao desmaiar, vitória, derrota e desistência.
 - `BattleApiIntegrationTest`: desafios de ponta a ponta com MongoDB real: time do mesmo tamanho da equipe do treinador, novo sorteio, troca, batalha até o fim, treinador sem Pokémon, validações, cópia do Pokémon, histórico e estatísticas.
 - `MinigameApiIntegrationTest`: placar dos minigames: gravação, posição no ranking, ordenação, estatísticas e validações.
+- `GenerationsSeedIntegrationTest`: importação das 9 gerações (1025 Pokémon, 19 tipos), filtro pelo tipo Fada, próximo número livre (#1026) e Pokémon excluído que não volta ao reiniciar.
+- `DailyChallengeIntegrationTest`: desafios do dia: mesmos Pokémon em chamadas repetidas, melhor partida de cada jogador no ranking, 5 rodadas obrigatórias, treinador e time do dia na batalha e ordenação do ranking por rodadas e HP.
 - `MongoIndexesIntegrationTest`: índices criados na inicialização para as consultas da aplicação.
 
 Os testes de integração exigem Docker e são **ignorados automaticamente** quando o Docker não está disponível.
 
-### Frontend: 33 testes
+### Frontend: 35 testes
 
 ```bash
 cd frontend
 npm test
 ```
 
-Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado), as regras de batalha exibidas na tela, a pontuação dos três minigames e as rotas das páginas.
+Cobrem a conversão entre a API e a interface, a pesquisa, os filtros, a ordenação, a validação do formulário, o cliente HTTP (com `fetch` simulado), as regras de batalha exibidas na tela, a pontuação dos três minigames, as gerações e as rotas das páginas.
 
 ### Integração contínua
 
@@ -476,7 +511,7 @@ O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda a cada pu
 
 ### Verificação manual sugerida
 
-1. A lista inicial mostra os 151 Pokémon vindos da API, com os seis atributos.
+1. A lista inicial mostra os 1025 Pokémon vindos da API, com os seis atributos; o filtro **1ª Kanto** deixa só os 151 do script da atividade.
 2. `Bulba` encontra Bulbasaur; `25`, `025` e `#025` encontram Pikachu.
 3. Planta + Veneno encontra Bulbasaur; Fogo + Água não tem resultados; Sem tipo encontra Mew.
 4. **Novo Pokémon** cadastra um Pokémon, que aparece na lista, na pesquisa e no filtro de tipo, e continua lá depois de recarregar a página.
@@ -485,6 +520,7 @@ O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda a cada pu
 7. Com o backend desligado, a interface mostra o aviso de erro; ao religar, **Tentar novamente** recarrega os dados.
 8. Em **Batalhas**, desafiar o Brock sorteia um time de 2 Pokémon; ao final da batalha, o resultado aparece no desempenho e no histórico.
 9. Em **Minigames**, uma partida de *Qual é o número?* dá 100 pontos no número exato e menos pontos quanto mais longe; o placar entra no ranking.
+10. O **desafio do dia** mostra os mesmos Pokémon em outro navegador; depois de jogar, o resultado aparece no ranking **Hoje** e o botão some até o dia seguinte.
 
 ## Variáveis de ambiente
 
@@ -495,6 +531,7 @@ Backend (variável de ambiente ou `backend/.env`):
 | `MONGODB_URI` | `mongodb://localhost:27017` | Conexão com o MongoDB (Atlas ou local) |
 | `MONGODB_DATABASE` | `pokedex` | Nome do banco |
 | `POKEDEX_SEED_MODE` | `if-empty` | `if-empty`, `always` (reimporta o script) ou `never` |
+| `POKEDEX_SEED_GENERATIONS` | `true` | Importa também o `Script_Pokedex_Geracoes.sql` (2ª à 9ª geração) |
 | `PORT` | `8080` | Porta da API |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173` | Origens autorizadas a chamar a API diretamente |
 
@@ -518,7 +555,7 @@ Frontend (opcional, em `frontend/.env`; veja `frontend/.env.example`):
 
 ## Imagens
 
-As ilustrações vêm do repositório público [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (`sprites/pokemon/other/official-artwork/{id}.png`) e estão em `frontend/public/images/pokemon/{id}.png`, servidas localmente. Elas complementam apenas a apresentação visual. Os dados vêm do MongoDB, populado pelo `Script_Pokedex.sql`.
+As ilustrações vêm do repositório público [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (`sprites/pokemon/other/official-artwork/{id}.png`). As da 1ª geração estão em `frontend/public/images/pokemon/{id}.png`, servidas localmente; as da 2ª à 9ª são carregadas direto desse repositório. Elas complementam apenas a apresentação visual. Os dados vêm do MongoDB, populado pelos scripts SQL.
 
 Pokémon e seus personagens pertencem aos respectivos titulares. Este projeto foi preparado para uso educacional.
 
@@ -535,6 +572,8 @@ Atividade realizada individualmente por **Álvaro Barbosa**.
 - [x] Desafios opcionais: consulta por tipo, busca por nome, treinadores no MongoDB e relação treinador ↔ Pokémon.
 - [x] Extra: batalhas contra os treinadores (time sorteado do mesmo tamanho), com regras no backend e estatísticas por agregação.
 - [x] Extra: minigames (tipo, número da Pokédex e maior atributo) com ranking salvo no MongoDB.
+- [x] Extra: desafios do dia nos minigames e nas batalhas, iguais para todos, com ranking diário.
+- [x] Extra: Pokémon da 2ª à 9ª geração (1025 no total) com filtro por geração.
 - [x] Execução com um comando via Docker (`docker compose up -d --build`).
 - [x] Configurar o MongoDB Atlas e testar a aplicação com ele.
 - [x] Publicar o repositório no GitHub.
