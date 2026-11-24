@@ -155,8 +155,8 @@ public class DatabaseSeeder implements ApplicationRunner {
         }
         history.insertOne(new Document("_id", GENERATIONS_SEED).append("pokemons", newPokemons.size())
                 .append("importedAt", java.util.Date.from(Instant.now())));
-        log.info("{} importado: {} Pokémon (2ª à 9ª geração), {} tipos novos", GENERATIONS_SEED,
-                newPokemons.size(), newTypes.size());
+        log.info("{} importado: {} Pokémon (2ª à 9ª geração), {} {}", GENERATIONS_SEED,
+                newPokemons.size(), newTypes.size(), newTypes.size() == 1 ? "tipo novo" : "tipos novos");
     }
 
     private String readScript(String location) throws IOException {
